@@ -7,6 +7,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 120000, // 2 minutes default timeout
 });
 
 // Request interceptor to add auth token
@@ -84,6 +85,7 @@ export const memoriesAPI = {
   createWithFile: (formData) =>
     api.post("/memories", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 600000, // 10 minutes for large video uploads
     }),
   update: (id, data) => api.put(`/memories/${id}`, data),
   delete: (id) => api.delete(`/memories/${id}`),
@@ -103,11 +105,13 @@ export const albumsAPI = {
   createWithFile: (formData) =>
     api.post("/albums", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 600000, // 10 minutes for large video uploads
     }),
   update: (id, data) => api.put(`/albums/${id}`, data),
   updateWithFile: (id, formData) =>
     api.put(`/albums/${id}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 600000, // 10 minutes for large video uploads
     }),
   delete: (id) => api.delete(`/albums/${id}`),
   addMemory: (id, memoryId) => api.post(`/albums/${id}/memories`, { memoryId }),
@@ -123,8 +127,7 @@ export const milestonesAPI = {
   create: (data) => api.post("/milestones", data),
   update: (id, data) => api.put(`/milestones/${id}`, data),
   delete: (id) => api.delete(`/milestones/${id}`),
-  getUpcoming: () => api.get("/milestones/upcoming/list"),
-  getStats: () => api.get("/milestones/stats/summary"),
+  getTodayReminders: () => api.get("/milestones/today"),
 };
 
 export default api;

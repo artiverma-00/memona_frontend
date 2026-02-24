@@ -164,17 +164,79 @@ const AlbumDetail = () => {
       if (response.data?.success) {
         const createdMemory =
           response.data?.data?.memory || response.data?.data;
+
+        // Get media URL and type from response
+        let mediaUrl = createdMemory?.media_url;
+        let mediaType = createdMemory?.media_type;
+
+        // If media URL not directly available, try to get from media array
+        if (
+          !mediaUrl &&
+          Array.isArray(createdMemory?.media) &&
+          createdMemory.media.length > 0
+        ) {
+          mediaUrl = createdMemory.media[0]?.url;
+          mediaType = createdMemory.media[0]?.type;
+        }
+
+        console.log("[ALBUM-UPLOAD] Memory created:", {
+          id: createdMemory?.id,
+          mediaUrl,
+          mediaType,
+        });
+
         const createdItem = {
           id: createdMemory?.id || `${Date.now()}`,
           title: createdMemory?.title || `${album.name || "Album"} ${type}`,
-          type:
-            createdMemory?.media_type || (type === "voice" ? "audio" : type),
-          url: createdMemory?.media_url || null,
+          type: mediaType || (type === "voice" ? "audio" : type),
+          url: mediaUrl,
           createdAt: createdMemory?.created_at || new Date().toISOString(),
         };
 
+        // Add to state immediately if we have URL
         if (createdItem.url) {
+          console.log("[ALBUM-UPLOAD] Adding to album media:", createdItem);
           setAlbumMedia((prev) => [createdItem, ...prev]);
+          toast.success(`${type} uploaded successfully!`);
+        } else {
+          // If no URL, refresh album to get updated media list
+          console.log("[ALBUM-UPLOAD] No immediate URL, refetching album...");
+          const refreshResponse = await albumsAPI.getById(id);
+          if (refreshResponse.data?.success) {
+            const refreshedAlbum =
+              refreshResponse.data?.data?.album || refreshResponse.data?.data;
+            if (refreshedAlbum?.memories) {
+              // Rebuild media list from refreshed album
+              const updatedMedia = refreshedAlbum.memories
+                .flatMap((memory) => {
+                  if (Array.isArray(memory?.media)) {
+                    return memory.media.map((item, index) => ({
+                      id: `${memory._id || memory.id}-${index}`,
+                      title: memory.title || "Untitled",
+                      type: item?.type || "image",
+                      url: item?.url || null,
+                      createdAt: memory.date || memory.created_at || null,
+                    }));
+                  }
+                  if (memory?.media_url) {
+                    return [
+                      {
+                        id: memory._id || memory.id,
+                        title: memory.title || "Untitled",
+                        type: memory.media_type || "image",
+                        url: memory.media_url,
+                        createdAt: memory.date || memory.created_at || null,
+                      },
+                    ];
+                  }
+                  return [];
+                })
+                .filter((item) => item.url);
+
+              setAlbumMedia(updatedMedia);
+              toast.success(`${type} uploaded successfully!`);
+            }
+          }
         }
 
         if (type === "photo" && !resolveCoverImage(album)) {
@@ -198,8 +260,6 @@ const AlbumDetail = () => {
             // Keep upload successful even if cover update fails.
           }
         }
-
-        toast.success(`${type} uploaded successfully.`);
       } else {
         toast.error(`Failed to upload ${type}.`);
       }

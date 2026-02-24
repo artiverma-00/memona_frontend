@@ -87,20 +87,39 @@ const normalizeAlbum = (album) => {
 };
 
 const normalizeMilestone = (milestone) => {
-  const normalized = normalizeMemory(milestone);
+  if (!milestone) {
+    return null;
+  }
+
+  // Extract memory from nested structure (backend returns milestone with memories nested)
+  const memoryData = milestone.memories || milestone;
+  const normalized = normalizeMemory(memoryData);
+
   if (!normalized) {
     return null;
   }
 
   return {
     ...normalized,
-    title: normalized.title || normalized.name || "",
-    isCompleted: normalized.isCompleted || false,
-    targetDate: normalized.targetDate || null,
-    targetCount:
-      typeof normalized.targetCount === "number"
-        ? normalized.targetCount
-        : null,
+    // Milestone-specific fields
+    _id: milestone.id || milestone._id || normalized._id,
+    id: milestone.id || milestone._id || normalized.id,
+    memory_id: milestone.memory_id,
+    celebration_date: milestone.celebration_date,
+    reminder_enabled: milestone.reminder_enabled ?? true,
+    created_at: milestone.created_at,
+    updated_at: milestone.updated_at,
+    title: milestone.title || normalized.title || normalized.name || "",
+    description: milestone.description || "",
+    isCompleted: milestone.isCompleted || false,
+    // Handle both standalone and memory-linked milestones
+    type: milestone.type || "life_event",
+    targetDate: milestone.target_date || milestone.targetDate || null,
+    targetCount: milestone.target_count ?? milestone.targetCount ?? null,
+    reminderOption:
+      milestone.reminder_option || milestone.reminderOption || "1_week_before",
+    // Flag to distinguish standalone milestones
+    is_standalone: milestone.is_standalone || false,
   };
 };
 
@@ -208,11 +227,71 @@ const buildAlbumRequest = (data) => {
   return { payload: formData, isMultipart: true };
 };
 
-const buildMilestonePayload = (data) => ({
-  title: data.title,
-  description: data.description || "",
-  is_public: data.isPrivate ? "false" : "true",
-});
+const buildMilestonePayload = (data) => {
+  // Backend supports two modes:
+  // 1. From Memory: requires memory_id (UUID), celebration_date, reminder_enabled
+  // 2. Standalone: requires title, celebration_date, and optional fields
+
+  // Check if this is a standalone milestone
+  // Standalone has title but NO memory_id, OR memory_id is empty/invalid
+  const hasValidMemoryId = data.memory_id && data.memory_id.trim() !== "";
+  const isStandalone = !hasValidMemoryId && data.title;
+
+  const payload = {};
+
+  if (isStandalone) {
+    // Standalone milestone mode - create with full metadata
+    if (data.title) {
+      payload.title = data.title;
+    }
+    if (data.description) {
+      payload.description = data.description;
+    }
+    if (data.type) {
+      payload.type = data.type;
+    }
+    // Map date to celebration_date (required)
+    if (data.date) {
+      payload.celebration_date = data.date;
+    }
+    // Map targetDate to target_date
+    if (data.targetDate) {
+      payload.target_date = data.targetDate;
+    }
+    // Map targetCount to target_count
+    if (data.targetCount !== undefined && data.targetCount !== null) {
+      payload.target_count = data.targetCount;
+    }
+    // Map reminderOption to reminder_option
+    if (data.reminderOption) {
+      payload.reminder_option = data.reminderOption;
+    }
+    // Always enable reminders for standalone milestones by default
+    if (data.reminder_enabled !== undefined) {
+      payload.reminder_enabled = data.reminder_enabled;
+    } else {
+      payload.reminder_enabled = true;
+    }
+  } else {
+    // From Memory mode (original behavior)
+    if (hasValidMemoryId) {
+      payload.memory_id = data.memory_id;
+    }
+    if (data.celebration_date) {
+      payload.celebration_date = data.celebration_date;
+    }
+    if (data.reminder_enabled !== undefined) {
+      payload.reminder_enabled = data.reminder_enabled;
+    }
+  }
+
+  // For update operations, allow partial updates
+  if (Object.keys(payload).length === 0) {
+    throw new Error("At least one field is required for milestone");
+  }
+
+  return payload;
+};
 
 const MemoryContext = createContext(null);
 
@@ -566,9 +645,7 @@ export const MemoryProvider = ({ children }) => {
       setError(null);
       const response = await milestonesAPI.create(buildMilestonePayload(data));
       if (response.data?.success) {
-        const milestone = normalizeMilestone(
-          response.data?.data?.milestone || response.data?.data,
-        );
+        const milestone = normalizeMilestone(response.data?.data);
         if (milestone) {
           setMilestones((prev) => [milestone, ...prev]);
         }
@@ -593,9 +670,7 @@ export const MemoryProvider = ({ children }) => {
         buildMilestonePayload(data),
       );
       if (response.data?.success) {
-        const updatedMilestone = normalizeMilestone(
-          response.data?.data?.milestone || response.data?.data,
-        );
+        const updatedMilestone = normalizeMilestone(response.data?.data);
         if (updatedMilestone) {
           setMilestones((prev) =>
             prev.map((m) => (m._id === id ? updatedMilestone : m)),
@@ -631,6 +706,25 @@ export const MemoryProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  const fetchTodayReminders = useCallback(async () => {
+    try {
+      const response = await milestonesAPI.getTodayReminders();
+      if (response.data?.success) {
+        const todayReminders =
+          response.data?.data?.todayReminders || response.data?.data || [];
+        const normalized = Array.isArray(todayReminders)
+          ? todayReminders.map(normalizeMilestone).filter(Boolean)
+          : [];
+        return { success: true, data: normalized };
+      }
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Failed to fetch today's reminders";
+      console.error(message);
+      return { success: false, error: message, data: [] };
+    }
+  }, []);
 
   const fetchSharedMemories = useCallback(async () => {
     try {
@@ -683,6 +777,7 @@ export const MemoryProvider = ({ children }) => {
     createMilestone,
     updateMilestone,
     deleteMilestone,
+    fetchTodayReminders,
     fetchSharedMemories,
     setCurrentMemory,
   };

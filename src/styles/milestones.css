@@ -1,0 +1,339 @@
+/* Milestones Theme & Animations */
+
+/* CSS Variables for consistent theming */
+:root {
+  --color-gold-50: #fef9f0;
+  --color-gold-100: #fde8d4;
+  --color-gold-200: #fcc86a;
+  --color-gold-300: #f4b400;
+  --color-gold-400: #e8a600;
+  --color-gold-500: #d99a00;
+  --color-gold-600: #cc8c00;
+
+  --color-amber-25: #fffbf5;
+  --color-amber-50: #fffaf0;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Premium Light Mode Background */
+.premiere-light-bg {
+  background: linear-gradient(135deg, #fafaf9 0%, #fef9f0 50%, #fafaf9 100%);
+  background-attachment: fixed;
+}
+
+/* Fade In Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDelayed {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-fade-in-delayed {
+  animation: fadeInDelayed 1.2s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Gold Pulse Animation */
+@keyframes pulseGold {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 180, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 180, 0, 0);
+  }
+}
+
+@keyframes pulseLight {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-pulse-gold {
+  animation: pulseGold 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-pulse-light {
+  animation: pulseLight 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Spin Animations */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverseSlow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 6s linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spinReverseSlow 8s linear infinite;
+}
+
+/* Premium upcoming card styling */
+.premium-upcoming-card {
+  perspective: 1000px;
+}
+
+.premium-upcoming-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Timeline styling */
+.milestone-timeline-item {
+  position: relative;
+}
+
+.milestone-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -32px;
+  width: 2px;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, rgb(244, 180, 0, 0.3));
+}
+
+/* Scrollable content animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out forwards;
+}
+
+/* Hover effects for cards */
+.card-hover-effect {
+  transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-gold-400);
+  outline-offset: 2px;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .timeline-desktop-only {
+    display: none;
+  }
+
+  .animate-fade-in-up {
+    animation-delay: 0.1s;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--color-gold-300);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--color-gold-300);
+  color: white;
+}
+
+/* Print styles */
+@media print {
+  .premiere-light-bg {
+    background: white;
+  }
+
+  .animate-fade-in,
+  .animate-fade-in-delayed,
+  .animate-fade-in-up {
+    animation: none;
+    opacity: 1;
+  }
+
+  .animate-pulse-gold,
+  .animate-spin-slow,
+  .animate-spin-reverse-slow {
+    animation: none;
+  }
+}
+
+/* Confetti animations */
+@keyframes confettiFall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  animation: confettiFall 3s ease-out forwards;
+}
+
+/* Scale pulse animation for celebration */
+@keyframes scalePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-scale-pulse {
+  animation: scalePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Float animation for upcoming anniversary highlight */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Countdown timer pulse */
+@keyframes countdownPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  50% {
+    transform: scale(1.02);
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.animate-countdown-pulse {
+  animation: countdownPulse 1s ease-in-out infinite;
+}
+
+/* Glow effect for celebration */
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(244, 180, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 180, 0, 0.8);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Modal entrance animation */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-modal-slide-in {
+  animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Celebration card animation */
+@keyframes celebrationGrow {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-celebration-grow {
+  animation: celebrationGrow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

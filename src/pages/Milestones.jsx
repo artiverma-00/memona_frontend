@@ -31,7 +31,9 @@ import {
 const Milestones = () => {
   const {
     milestones,
+    memories,
     loading,
+    fetchMemories,
     fetchMilestones,
     createMilestone,
     updateMilestone,
@@ -58,7 +60,8 @@ const Milestones = () => {
 
   useEffect(() => {
     fetchMilestones();
-  }, [fetchMilestones]);
+    fetchMemories();
+  }, [fetchMilestones, fetchMemories]);
 
   const normalizeSearchText = (value) => String(value || "").toLowerCase();
 
