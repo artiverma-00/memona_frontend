@@ -7,6 +7,8 @@ import {
   FiCheck,
   FiFilter,
   FiBell,
+  FiTrash2,
+  FiMessageCircle,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useMemory } from "../context/MemoryContext";
@@ -245,44 +247,50 @@ const Milestones = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl p-4 border border-stone-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <FiStar className="w-5 h-5 text-amber-600" />
+        <div className="bg-white rounded-3xl p-5 border border-stone-100 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center shadow-inner">
+              <FiStar className="w-6 h-6 text-amber-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-stone-900">
+              <p className="text-2xl font-black text-stone-900 tracking-tight">
                 {milestones.length}
               </p>
-              <p className="text-sm text-stone-500">Total</p>
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                Total Chapter
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-stone-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <FiCheck className="w-5 h-5 text-emerald-600" />
+        <div className="bg-white rounded-3xl p-5 border border-stone-100 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shadow-inner">
+              <FiCheck className="w-6 h-6 text-emerald-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-stone-900">
+              <p className="text-2xl font-black text-stone-900 tracking-tight">
                 {milestones.filter((m) => m.isCompleted).length}
               </p>
-              <p className="text-sm text-stone-500">Completed</p>
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                Achievements
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-stone-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-              <FiBell className="w-5 h-5 text-indigo-600" />
+        <div className="bg-white rounded-3xl p-5 border border-stone-100 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shadow-inner">
+              <FiBell className="w-6 h-6 text-indigo-500" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-stone-900">
+              <p className="text-2xl font-black text-stone-900 tracking-tight">
                 {upcomingMilestones.length}
               </p>
-              <p className="text-sm text-stone-500">Upcoming</p>
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                Next Event
+              </p>
             </div>
           </div>
         </div>
@@ -346,29 +354,31 @@ const Milestones = () => {
           </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
           {filteredMilestones.map((milestone) => (
             <div key={milestone._id} className="flex flex-col">
               <MemoryMilestone
                 milestone={milestone}
                 onClick={() => handleEdit(milestone)}
               />
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2.5 mt-4 px-1 pb-8">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleOpenReflection(milestone)}
-                  className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-400 to-indigo-500 text-white rounded-lg text-sm font-medium hover:from-indigo-500 hover:to-indigo-600 transition-all"
+                  className="flex-1 px-4 py-2.5 bg-stone-900 text-amber-400 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl border border-stone-800 flex items-center justify-center gap-2 group/btn"
                 >
-                  💭 Reflect
+                  <FiMessageCircle className="w-4 h-4 text-amber-500 group-hover/btn:scale-110 transition-transform" />
+                  <span>Reflect</span>
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleDelete(milestone._id)}
-                  className="px-3 py-2 bg-stone-100 text-stone-700 rounded-lg text-sm font-medium hover:bg-stone-200 transition-all"
+                  className="px-3.5 bg-white text-stone-300 rounded-2xl text-[11px] font-medium hover:text-red-500 transition-all border border-stone-100 shadow-sm"
+                  title="Delete Milestone"
                 >
-                  🗑️
+                  <FiTrash2 className="w-4 h-4" />
                 </motion.button>
               </div>
             </div>

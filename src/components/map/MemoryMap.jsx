@@ -12,8 +12,38 @@ const MemoryMap = ({
 }) => {
   const [selectedMemory, setSelectedMemory] = useState(null);
 
-  // Filter memories with location data
-  const memoriesWithLocation = memories.filter((m) => m.location?.coordinates);
+  // Normalize memories to handle different data formats from various API endpoints
+  // Server /memories/map returns: id, title, created_at, location_lat, location_lng, media_thumbnail
+  // Server /memories returns: _id, title, date, location.coordinates.lat/lng, media[]
+  const normalizeMemories = (mems) => {
+    return mems.map((m) => ({
+      _id: m._id || m.id,
+      id: m.id || m._id,
+      title: m.title,
+      date: m.date || m.created_at,
+      location: m.location?.coordinates
+        ? m.location
+        : {
+            name: m.location_name || "",
+            coordinates:
+              m.location_lat != null && m.location_lng != null
+                ? { lat: Number(m.location_lat), lng: Number(m.location_lng) }
+                : null,
+          },
+      media:
+        m.media ||
+        (m.media_thumbnail ? [{ type: "image", url: m.media_thumbnail }] : []),
+    }));
+  };
+
+  const normalizedMemories = normalizeMemories(memories);
+
+  // Filter memories with location data - check both normalized and original formats
+  const memoriesWithLocation = normalizedMemories.filter(
+    (m) =>
+      m.location?.coordinates?.lat != null &&
+      m.location?.coordinates?.lng != null,
+  );
 
   const handleMarkerClick = (memory) => {
     setSelectedMemory(memory);

@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { albumsAPI, memoriesAPI } from "../services/api";
 import Loader from "../components/shared/Loader";
+import MemoryCard from "../components/memory/MemoryCard";
 import { formatDate } from "../utils/formatDate";
 
 const resolveCoverImage = (album) => {
@@ -444,118 +445,23 @@ const AlbumDetail = () => {
             No media uploaded yet.
           </div>
         ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {albumMedia.map((item) => (
-              <div
+              <MemoryCard
                 key={item.id}
-                className="overflow-hidden rounded-xl border border-stone-200 bg-white"
-              >
-                {item.type === "video" ? (
-                  <div
-                    onClick={() => {
-                      setSelectedMedia(item);
-                      setShowPreview(true);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <video
-                      src={item.url}
-                      className="h-44 w-full bg-black object-cover"
-                    />
-                  </div>
-                ) : item.type === "audio" ? (
-                  <div className="flex h-44 w-full items-center justify-center bg-stone-100 p-4">
-                    <audio src={item.url} controls className="w-full" />
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => {
-                      setSelectedMedia(item);
-                      setShowPreview(true);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <img
-                      src={item.url}
-                      alt={item.title || "Album media"}
-                      className="h-44 w-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="p-3">
-                  <p className="truncate text-sm font-medium text-stone-900">
-                    {item.title || "Untitled"}
-                  </p>
-                  <p className="mt-1 text-xs text-stone-500">
-                    {clockTick >= 0 && item.createdAt
-                      ? formatDate(item.createdAt, "relative")
-                      : ""}
-                  </p>
-                </div>
-              </div>
+                memory={{
+                  _id: item.id.split("-")[0], // Root memory ID
+                  title: item.title,
+                  media: [{ type: item.type, url: item.url }],
+                  date: item.createdAt,
+                }}
+                showActions={false}
+                aspectRatio="aspect-video"
+              />
             ))}
           </div>
         )}
       </div>
-
-      {showPreview && selectedMedia?.url ? (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 md:p-6 backdrop-blur-md"
-          onClick={() => setShowPreview(false)}
-        >
-          <div
-            className="max-h-full max-w-5xl w-full flex flex-col items-center justify-center"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowPreview(false)}
-              className="fixed top-6 right-6 text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full backdrop-blur-md z-[10000]"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-
-            {selectedMedia.type === "image" ||
-            selectedMedia.type === "photo" ? (
-              <img
-                src={selectedMedia.url}
-                alt={selectedMedia.title}
-                className="w-full h-auto max-h-[90vh] object-contain rounded-lg shadow-2xl"
-              />
-            ) : selectedMedia.type === "video" ? (
-              <video
-                src={selectedMedia.url}
-                className="w-full max-h-[90vh] rounded-lg shadow-2xl"
-                controls
-                autoPlay
-              />
-            ) : (
-              <div className="bg-stone-900 p-8 rounded-2xl w-full max-w-md shadow-2xl">
-                <audio src={selectedMedia.url} className="w-full" controls />
-              </div>
-            )}
-
-            {selectedMedia.title && (
-              <div className="mt-4 text-center">
-                <h3 className="text-white text-xl font-medium">
-                  {selectedMedia.title}
-                </h3>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };

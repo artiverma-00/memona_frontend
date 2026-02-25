@@ -93,7 +93,7 @@ export const memoriesAPI = {
   unlike: (id) => api.delete(`/interactions/memories/${id}/likes`),
   getLikeSummary: (id) => api.get(`/interactions/memories/${id}/likes`),
   share: (id, data) => api.post(`/memories/${id}/share`, data),
-  getMapLocations: () => api.get("/memories/map/locations"),
+  getMapLocations: () => api.get("/memories/map"),
   getTimeline: (year) => api.get(`/memories/timeline/${year}`),
 };
 

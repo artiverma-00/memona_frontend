@@ -368,31 +368,14 @@ const Dashboard = () => {
         </div>
 
         {favoriteMemories.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {favoriteMemories.slice(0, 6).map((memory) => (
-              <Link
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+            {favoriteMemories.slice(0, 5).map((memory) => (
+              <MemoryCard
                 key={memory._id}
-                to={getMemoryRedirectPath(memory)}
-                className="group relative aspect-square rounded-xl overflow-hidden border border-[var(--color-surface-border)] shadow-sm hover:shadow-md transition-all"
-              >
-                {memory.media?.[0]?.type === "image" ? (
-                  <img
-                    src={memory.media[0].url}
-                    alt={memory.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-amber-50 flex items-center justify-center">
-                    <FiStar className="w-6 h-6 text-amber-200" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-[10px] font-medium text-white truncate">
-                    {memory.title}
-                  </p>
-                </div>
-              </Link>
+                memory={memory}
+                onToggleFavorite={toggleFavorite}
+                onDelete={handleDeleteMemory}
+              />
             ))}
           </div>
         ) : (
@@ -448,7 +431,7 @@ const Dashboard = () => {
         </div>
 
         {recentItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {recentItemsWithAlbumData
               .filter((item) => item.type === "album" || !item.isMilestone)
               .slice(0, 8)

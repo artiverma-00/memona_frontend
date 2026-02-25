@@ -8,36 +8,59 @@ import SearchBar from "../components/shared/SearchBar";
 import Loader from "../components/shared/Loader";
 
 const MapView = () => {
-  const { memories, loading, fetchMemories, toggleFavorite } = useMemory();
+  const {
+    memories,
+    loading,
+    fetchMemories,
+    fetchMapLocations,
+    toggleFavorite,
+  } = useMemory();
+  const [mapMemories, setMapMemories] = useState([]);
+  const [mapLoading, setMapLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [viewMode, setViewMode] = useState("map"); // 'map', 'list'
 
+  // Fetch map-specific memories for the map view
   useEffect(() => {
-    fetchMemories();
-  }, [fetchMemories]);
+    const loadMapMemories = async () => {
+      setMapLoading(true);
+      try {
+        const locations = await fetchMapLocations();
+        setMapMemories(locations || []);
+      } catch (error) {
+        console.error("Failed to fetch map locations:", error);
+        setMapMemories([]);
+      } finally {
+        setMapLoading(false);
+      }
+    };
+    loadMapMemories();
+  }, [fetchMapLocations]);
 
   // Filter memories with location
-  const memoriesWithLocation = memories.filter((m) => m.location?.coordinates);
   const normalizeSearchText = (value) => String(value || "").toLowerCase();
 
   const filteredMemories = searchQuery
-    ? memoriesWithLocation.filter(
+    ? mapMemories.filter(
         (m) =>
           normalizeSearchText(m.title).includes(
             normalizeSearchText(searchQuery),
           ) ||
-          normalizeSearchText(m.location?.name).includes(
+          normalizeSearchText(m.location?.name || "").includes(
             normalizeSearchText(searchQuery),
           ),
       )
-    : memoriesWithLocation;
+    : mapMemories;
 
   const handleMarkerClick = (memory) => {
     setSelectedMemory(memory);
   };
 
-  if (loading) {
+  // Check loading state - use mapLoading for map-specific data
+  const isLoading = loading || mapLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader size="lg" text="Loading map..." />
@@ -54,9 +77,9 @@ const MapView = () => {
             Memory Journey Map
           </h1>
           <p className="text-stone-500">
-            {memoriesWithLocation.length}{" "}
-            {memoriesWithLocation.length === 1 ? "location" : "locations"}{" "}
-            across your memories
+            {filteredMemories.length}{" "}
+            {filteredMemories.length === 1 ? "location" : "locations"} across
+            your memories
           </p>
         </div>
 
@@ -94,7 +117,7 @@ const MapView = () => {
       </div>
 
       {/* Content */}
-      {memoriesWithLocation.length === 0 ? (
+      {filteredMemories.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-4">
             <FiMapPin className="w-8 h-8 text-amber-400" />
