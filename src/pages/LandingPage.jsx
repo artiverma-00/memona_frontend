@@ -2,7 +2,6 @@ import LandingNavbar from "../components/landing/LandingNavbar";
 import HeroSection from "../components/landing/HeroSection";
 import HowItWorksSection from "../components/landing/HowItWorksSection";
 import FeaturesSection from "../components/landing/FeaturesSection";
-import ReminisceSection from "../components/landing/ReminisceSection";
 import MapSection from "../components/landing/MapSection";
 import VideoMemoriesSection from "../components/landing/VideoMemoriesSection";
 import TrustSection from "../components/landing/TrustSection";
@@ -17,7 +16,6 @@ export default function LandingPage() {
       <HeroSection />
       <HowItWorksSection />
       <FeaturesSection />
-      <ReminisceSection />
       <MapSection />
       <VideoMemoriesSection />
       <TrustSection />

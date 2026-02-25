@@ -93,13 +93,6 @@ const SearchBar = ({
             )}
           </AnimatePresence>
 
-          {!query && !isFocused && (
-            <div className="hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded border border-stone-200 bg-white text-[10px] font-bold text-stone-400 select-none">
-              <span>⌘</span>
-              <span>K</span>
-            </div>
-          )}
-
           {showFilterButton && <div className="w-px h-5 bg-stone-200 mx-1" />}
 
           {showFilterButton && (
