@@ -1,4 +1,4 @@
-import { Bell, BellOff, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useMemory } from "../../context/MemoryContext";
@@ -10,11 +10,18 @@ export default function MilestoneCard({
   onOpenMemory,
 }) {
   const { updateMilestone, deleteMilestone } = useMemory();
-  const [isHovered, setIsHovered] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reminderEnabled, setReminderEnabled] = useState(
     milestone.reminder_enabled || false,
   );
+
+  const milestoneTitle = milestone.title || "Untitled Milestone";
+  const milestoneDescription = milestone.description || "";
+  const milestoneImage =
+    milestone.media?.[0]?.url ||
+    milestone.media_url ||
+    milestone.memory_thumbnail ||
+    null;
 
   const calculateYearsAgo = (date) => {
     if (!date) return 0;
@@ -35,13 +42,19 @@ export default function MilestoneCard({
   const handleToggleReminder = async (e) => {
     e.stopPropagation();
     try {
-      await updateMilestone(milestone._id, {
-        ...milestone,
-        reminder_enabled: !reminderEnabled,
+      const nextValue = !reminderEnabled;
+      const result = await updateMilestone(milestone._id, {
+        reminder_enabled: nextValue,
       });
-      setReminderEnabled(!reminderEnabled);
+
+      if (result?.success) {
+        setReminderEnabled(nextValue);
+      } else {
+        toast.error(result?.error || "Failed to update reminder");
+      }
     } catch (error) {
       console.error("Failed to update reminder:", error);
+      toast.error("Failed to update reminder");
     }
   };
 
@@ -73,105 +86,89 @@ export default function MilestoneCard({
   const yearsAgo = calculateYearsAgo(milestone.celebration_date);
 
   return (
-    <div
-      className="group h-full cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="group h-full cursor-pointer">
       <div
-        className={`relative bg-white rounded-2xl overflow-hidden transition-all duration-300 h-full flex flex-col border border-gold-100 ${
-          isHovered ? "shadow-2xl -translate-y-2 border-gold-300" : "shadow-lg"
-        } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
+        className={`relative h-full overflow-hidden rounded-2xl border border-[var(--color-surface-border)] bg-[var(--color-surface-bg)] shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
+          isDeleting ? "pointer-events-none opacity-50" : ""
+        }`}
         onClick={handleCardClick}
       >
-        {/* Thumbnail Section */}
-        <div className="relative w-full h-56 bg-gradient-to-br from-gold-50 to-amber-50 overflow-hidden flex items-center justify-center">
-          {milestone.memory_thumbnail ? (
+        <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-amber-50 to-stone-100">
+          {milestoneImage ? (
             <img
-              src={milestone.memory_thumbnail}
-              alt={milestone.memory_title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              src={milestoneImage}
+              alt={milestoneTitle}
+              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="text-center">
-              <div className="text-5xl mb-2">📸</div>
-              <p className="text-gray-400 text-sm font-light">
-                Memory Milestone
-              </p>
+            <div className="flex h-full w-full items-center justify-center text-center">
+              <div>
+                <div className="mb-2 text-4xl">📸</div>
+                <p className="text-sm text-stone-400">Memory Milestone</p>
+              </div>
             </div>
           )}
 
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-            <span className="text-white font-semibold">Click to Reflect</span>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="flex-1 p-5 sm:p-6 flex flex-col">
-          {/* Title */}
-          <div className="mb-2">
-            <h3 className="text-lg sm:text-xl font-serif font-bold text-gray-900 group-hover:text-gold-600 transition-colors line-clamp-2">
-              {milestone.memory_title}
-            </h3>
-          </div>
-
-          {/* Description */}
-          {milestone.memory_description && (
-            <p className="text-sm text-gray-600 mb-3 line-clamp-2 font-light italic">
-              "{milestone.memory_description}"
-            </p>
-          )}
-
-          {/* Date */}
-          <p className="text-xs text-gray-500 mb-2 font-light uppercase tracking-wide">
-            {formatDate(milestone.celebration_date)}
-          </p>
-
-          {/* Years Badge */}
-          <div className="mb-4">
-            <span className="inline-block px-3 py-1 bg-gold-100 text-gold-700 text-xs font-bold rounded-full">
+          <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+          <div className="absolute right-3 top-3">
+            <span className="inline-flex items-center rounded-full bg-[#F4B400] px-3 py-1 text-xs font-semibold text-stone-900 shadow-sm">
               {yearsAgo} {yearsAgo === 1 ? "Year" : "Years"} Ago
             </span>
           </div>
+        </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+        <div className="flex flex-1 flex-col p-5 sm:p-6">
+          <h3 className="line-clamp-2 text-lg font-bold text-[var(--color-text-primary)] sm:text-xl">
+            {milestoneTitle}
+          </h3>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
-            {/* Reflect Button */}
-            <button
-              onClick={handleCardClick}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-gold-400 to-gold-500 text-white rounded-lg font-medium text-sm hover:shadow-md transform transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              <span>💭</span>
-              <span>Reflect</span>
-            </button>
+          {milestoneDescription ? (
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              {milestoneDescription}
+            </p>
+          ) : (
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              A cherished chapter worth revisiting.
+            </p>
+          )}
 
-            {/* Reminder Toggle */}
+          <p className="mt-4 text-xs font-medium uppercase tracking-wider text-stone-500">
+            {formatDate(milestone.celebration_date)}
+          </p>
+
+          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[var(--color-surface-border)] pt-4">
             <button
               onClick={handleToggleReminder}
-              title={reminderEnabled ? "Disable reminder" : "Enable reminder"}
-              className={`p-2.5 rounded-lg transition-all duration-300 ${
-                reminderEnabled
-                  ? "bg-gold-100 text-gold-600 hover:bg-gold-200"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              aria-label={
+                reminderEnabled ? "Disable reminder" : "Enable reminder"
+              }
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-200 ${
+                reminderEnabled ? "bg-[#F4B400]" : "bg-stone-300"
               }`}
             >
-              {reminderEnabled ? <Bell size={18} /> : <BellOff size={18} />}
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  reminderEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
             </button>
 
-            {/* Delete Button */}
             <button
               onClick={handleDelete}
               disabled={isDeleting}
               title="Delete milestone"
-              className="p-2.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300 disabled:opacity-50"
+              className="rounded-lg p-2 text-stone-400 transition-colors duration-200 hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
             >
-              <Trash2 size={18} />
+              <Trash2 size={16} />
             </button>
           </div>
+
+          <button
+            onClick={handleCardClick}
+            className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#F4B400] px-4 py-2.5 text-sm font-semibold text-stone-900 transition-all duration-200 hover:shadow-md"
+          >
+            Relive This Moment
+          </button>
         </div>
       </div>
     </div>

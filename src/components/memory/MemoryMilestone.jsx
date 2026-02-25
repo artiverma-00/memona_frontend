@@ -13,7 +13,12 @@ const MemoryMilestone = ({
   onClick,
   variant = "default", // 'default', 'compact', 'featured'
 }) => {
-  const memoriesCount = milestone.memories?.length || 0;
+  const memoryList = Array.isArray(milestone.memories)
+    ? milestone.memories
+    : milestone.memories
+      ? [milestone.memories]
+      : [];
+  const memoriesCount = memoryList.length;
   const typeIcon = MILESTONE_TYPE_ICONS[milestone.type] || "🎯";
   const colorGradient =
     MILESTONE_COLORS[milestone.type] || "from-indigo-500 to-purple-600";
@@ -31,11 +36,7 @@ const MemoryMilestone = ({
         ${variant === "featured" ? "col-span-2" : ""}
       `}
     >
-      <Link
-        to={`/milestones/${milestone._id}`}
-        onClick={onClick}
-        className="block"
-      >
+      <Link to="/milestones" onClick={onClick} className="block">
         {/* Banner Image */}
         {milestone.coverImage && (
           <div className="relative aspect-[3/1] overflow-hidden">
@@ -155,7 +156,7 @@ const MemoryMilestone = ({
           {/* Footer */}
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <div className="flex -space-x-2">
-              {milestone.memories?.slice(0, 3).map((memory, index) => {
+              {memoryList.slice(0, 3).map((memory, index) => {
                 const image = memory.media?.find((m) => m.type === "image");
                 return image ? (
                   <img

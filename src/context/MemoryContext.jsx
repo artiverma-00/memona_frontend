@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import { albumsAPI, memoriesAPI, milestonesAPI } from "../services/api";
+import memoryService from "../services/memoryService";
+import albumService from "../services/albumService";
+import milestoneService from "../services/milestoneService";
 
 const normalizeMemory = (memory) => {
   if (!memory) {
@@ -51,6 +53,8 @@ const normalizeMemory = (memory) => {
     id: normalizedId,
     album_id: memory.album_id || memory.album_memories?.[0]?.album_id || null,
     date: memory.date || memory.created_at || null,
+    uploaded_at:
+      memory.uploaded_at || memory.upload_date || memory.created_at || null,
     location: locationFromLegacy,
     media,
     isMilestone:
@@ -329,7 +333,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await memoriesAPI.getAll(params);
+      const response = await memoryService.getAll(params);
 
       if (response.data.success) {
         const payload = response.data.data;
@@ -350,7 +354,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await memoriesAPI.getById(id);
+      const response = await memoryService.getById(id);
 
       if (response.data.success) {
         const memory = normalizeMemory(
@@ -380,8 +384,8 @@ export const MemoryProvider = ({ children }) => {
       if (files.length <= 1) {
         const { payload, isMultipart } = buildMemoryPayload(data);
         const response = isMultipart
-          ? await memoriesAPI.createWithFile(payload)
-          : await memoriesAPI.create(payload);
+          ? await memoryService.createWithFile(payload)
+          : await memoryService.create(payload);
 
         if (response.data.success) {
           const memory = normalizeMemory(
@@ -402,7 +406,7 @@ export const MemoryProvider = ({ children }) => {
       const createdMemories = [];
       for (const file of files) {
         const { payload } = buildMemoryPayload(data, file);
-        const response = await memoriesAPI.createWithFile(payload);
+        const response = await memoryService.createWithFile(payload);
         if (!response.data?.success) {
           throw new Error("Failed to create memory");
         }
@@ -436,7 +440,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await memoriesAPI.update(id, data);
+      const response = await memoryService.update(id, data);
 
       if (response.data.success) {
         const updatedMemory = normalizeMemory(
@@ -465,7 +469,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await memoriesAPI.delete(id);
+      const response = await memoryService.delete(id);
 
       if (response.data.success) {
         setMemories((prev) => prev.filter((m) => m._id !== id));
@@ -488,8 +492,8 @@ export const MemoryProvider = ({ children }) => {
       const memory = memories.find((item) => item._id === id);
       const shouldLike = !memory?.isFavorite;
       const response = shouldLike
-        ? await memoriesAPI.like(id)
-        : await memoriesAPI.unlike(id);
+        ? await memoryService.like(id)
+        : await memoryService.unlike(id);
 
       if (response.data.success) {
         setMemories((prev) =>
@@ -506,7 +510,7 @@ export const MemoryProvider = ({ children }) => {
 
   const fetchMapLocations = useCallback(async () => {
     try {
-      const response = await memoriesAPI.getMapLocations();
+      const response = await memoryService.getMapLocations();
       if (response.data.success) {
         return response.data.data.memories;
       }
@@ -519,7 +523,7 @@ export const MemoryProvider = ({ children }) => {
 
   const fetchTimeline = useCallback(async (year) => {
     try {
-      const response = await memoriesAPI.getTimeline(year);
+      const response = await memoryService.getTimeline(year);
       if (response.data.success) {
         return response.data.data;
       }
@@ -534,7 +538,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await albumsAPI.getAll(params);
+      const response = await albumService.getAll(params);
       if (response.data?.success) {
         const nextAlbums =
           response.data?.data?.albums || response.data?.data || [];
@@ -557,8 +561,8 @@ export const MemoryProvider = ({ children }) => {
       setError(null);
       const { payload, isMultipart } = buildAlbumRequest(data);
       const response = isMultipart
-        ? await albumsAPI.createWithFile(payload)
-        : await albumsAPI.create(payload);
+        ? await albumService.createWithFile(payload)
+        : await albumService.create(payload);
       if (response.data?.success) {
         const album = normalizeAlbum(
           response.data?.data?.album || response.data?.data,
@@ -583,8 +587,8 @@ export const MemoryProvider = ({ children }) => {
       setError(null);
       const { payload, isMultipart } = buildAlbumRequest(data);
       const response = isMultipart
-        ? await albumsAPI.updateWithFile(id, payload)
-        : await albumsAPI.update(id, payload);
+        ? await albumService.updateWithFile(id, payload)
+        : await albumService.update(id, payload);
       if (response.data?.success) {
         const updatedAlbum = normalizeAlbum(
           response.data?.data?.album || response.data?.data,
@@ -609,7 +613,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await albumsAPI.delete(id);
+      const response = await albumService.delete(id);
       if (response.data?.success) {
         setAlbums((prev) => prev.filter((a) => a._id !== id));
         return { success: true };
@@ -627,7 +631,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await milestonesAPI.getAll(params);
+      const response = await milestoneService.getAll(params);
       if (response.data?.success) {
         const nextMilestones =
           response.data?.data?.milestones || response.data?.data || [];
@@ -648,7 +652,9 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await milestonesAPI.create(buildMilestonePayload(data));
+      const response = await milestoneService.create(
+        buildMilestonePayload(data),
+      );
       if (response.data?.success) {
         const milestone = normalizeMilestone(response.data?.data);
         if (milestone) {
@@ -670,7 +676,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await milestonesAPI.update(
+      const response = await milestoneService.update(
         id,
         buildMilestonePayload(data),
       );
@@ -697,7 +703,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await milestonesAPI.delete(id);
+      const response = await milestoneService.delete(id);
       if (response.data?.success) {
         setMilestones((prev) => prev.filter((m) => m._id !== id));
         return { success: true };
@@ -714,7 +720,7 @@ export const MemoryProvider = ({ children }) => {
 
   const fetchTodayReminders = useCallback(async () => {
     try {
-      const response = await milestonesAPI.getTodayReminders();
+      const response = await milestoneService.getTodayReminders();
       if (response.data?.success) {
         const todayReminders =
           response.data?.data?.todayReminders || response.data?.data || [];
@@ -735,7 +741,7 @@ export const MemoryProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await memoriesAPI.getAll({ shared: true });
+      const response = await memoryService.getAll({ shared: true });
       if (response.data?.success) {
         const nextShared =
           response.data?.data?.memories || response.data?.data || [];

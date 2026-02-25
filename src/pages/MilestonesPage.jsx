@@ -103,7 +103,11 @@ export default function MilestonesPage() {
   };
 
   const handleOpenMemory = (memoryId) => {
-    navigate(`/photos/${memoryId}`);
+    navigate("/photos", {
+      state: {
+        focusMemoryId: memoryId,
+      },
+    });
   };
 
   const handleFilterChange = (filters) => {
@@ -138,9 +142,18 @@ export default function MilestonesPage() {
     activeFilters.length === 0
       ? milestones
       : milestones.filter((milestone) => {
-          // Filter logic based on milestone type/category
-          // You can extend this based on your milestone schema
-          return true;
+          const title = String(milestone?.title || "").toLowerCase();
+          const description = String(
+            milestone?.description || "",
+          ).toLowerCase();
+          const type = String(milestone?.type || "").toLowerCase();
+
+          return activeFilters.some((filter) => {
+            if (type.includes(filter)) {
+              return true;
+            }
+            return title.includes(filter) || description.includes(filter);
+          });
         });
 
   return (

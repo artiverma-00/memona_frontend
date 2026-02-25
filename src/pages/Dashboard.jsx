@@ -14,6 +14,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useMemory } from "../context/MemoryContext";
 import { confirmDelete } from "../components/shared/ConfirmToast";
 import MemoryCard from "../components/memory/MemoryCard";
+import MemoryMilestone from "../components/memory/MemoryMilestone";
 import AlbumCard from "../components/album/AlbumCard";
 import MemoryForm from "../components/memory/MemoryForm";
 import ReminisceModal from "../components/modal/ReminisceModal";
@@ -138,7 +139,7 @@ const Dashboard = () => {
       return `/albums/${mappedAlbumId}`;
     }
 
-    return `/memory/${memory?._id || memory?.id}`;
+    return "/photos";
   };
 
   const mapMemoryWithAlbumId = (memory) => {
@@ -419,9 +420,13 @@ const Dashboard = () => {
               Manage All →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {milestones.slice(0, 3).map((milestone) => (
-              <MemoryMilestone key={milestone._id} milestone={milestone} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {milestones.slice(0, 5).map((milestone) => (
+              <MemoryMilestone
+                key={milestone._id}
+                milestone={milestone}
+                variant="compact"
+              />
             ))}
           </div>
         </motion.div>

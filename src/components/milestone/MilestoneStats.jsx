@@ -1,65 +1,94 @@
-import { Heart, Sparkles, Calendar, Trophy } from "lucide-react";
+import { Calendar, CheckCircle2, Heart } from "lucide-react";
 
 export default function MilestoneStats({ milestones = [] }) {
   const totalMilestones = milestones.length;
 
-  // Calculate milestones with reminders
-  const withReminders = milestones.filter((m) => m.reminder_enabled).length;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  // Calculate most recent milestone
-  const mostRecentMilestone =
-    milestones.length > 0
-      ? new Date(
-          Math.max(
-            ...milestones.map((m) => new Date(m.celebration_date).getTime()),
-          ),
-        )
-      : null;
+  const nextAnniversary = milestones.reduce((closest, milestone) => {
+    if (!milestone?.celebration_date) {
+      return closest;
+    }
 
-  // Calculate total celebrated years
-  const totalYears = milestones.reduce((sum, milestone) => {
-    const targetDate = new Date(milestone.celebration_date);
-    const today = new Date();
-    return sum + (today.getFullYear() - targetDate.getFullYear());
-  }, 0);
+    const original = new Date(milestone.celebration_date);
+    if (Number.isNaN(original.getTime())) {
+      return closest;
+    }
+
+    let candidate = new Date(
+      today.getFullYear(),
+      original.getMonth(),
+      original.getDate(),
+    );
+    candidate.setHours(0, 0, 0, 0);
+
+    if (candidate < today) {
+      candidate = new Date(
+        today.getFullYear() + 1,
+        original.getMonth(),
+        original.getDate(),
+      );
+      candidate.setHours(0, 0, 0, 0);
+    }
+
+    if (!closest || candidate < closest) {
+      return candidate;
+    }
+
+    return closest;
+  }, null);
+
+  const celebratedThisYear = milestones.filter((milestone) => {
+    const sourceDate = new Date(milestone?.celebration_date);
+    if (Number.isNaN(sourceDate.getTime())) {
+      return false;
+    }
+
+    const thisYearAnniversary = new Date(
+      today.getFullYear(),
+      sourceDate.getMonth(),
+      sourceDate.getDate(),
+    );
+    thisYearAnniversary.setHours(0, 0, 0, 0);
+
+    return thisYearAnniversary <= today;
+  }).length;
 
   const statCards = [
     {
       icon: Heart,
-      label: "Milestones Celebrated",
+      label: "Total Milestones",
       value: totalMilestones,
       color: "from-rose-500 to-rose-400",
       bgColor: "from-rose-50 to-rose-25",
-      description: "Cherished moments in your story",
-    },
-    {
-      icon: Sparkles,
-      label: "With Reminders",
-      value: withReminders,
-      color: "from-gold-500 to-gold-400",
-      bgColor: "from-gold-50 to-amber-25",
-      description: "Never miss a celebration",
+      description: "Saved moments in your story",
     },
     {
       icon: Calendar,
-      label: "Years Celebrated",
-      value: totalYears,
+      label: "Next Anniversary",
+      value: nextAnniversary
+        ? nextAnniversary.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+        : "—",
       color: "from-blue-500 to-blue-400",
       bgColor: "from-blue-50 to-blue-25",
-      description: "Time together celebrated",
+      description: "Closest upcoming date",
     },
     {
-      icon: Trophy,
-      label: "Story Strength",
-      value: `${Math.round((withReminders / Math.max(totalMilestones, 1)) * 100)}%`,
+      icon: CheckCircle2,
+      label: "Celebrated This Year",
+      value: celebratedThisYear,
       color: "from-amber-500 to-amber-400",
       bgColor: "from-amber-50 to-amber-25",
-      description: "Milestone engagement rate",
+      description: "Anniversaries already reached",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
       {statCards.map((card, index) => {
         const Icon = card.icon;
         return (

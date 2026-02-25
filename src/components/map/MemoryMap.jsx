@@ -150,7 +150,7 @@ const MemoryMap = ({
               </p>
             )}
             <Link
-              to={`/memory/${selectedMemory._id}`}
+              to="/photos"
               className="text-xs font-medium text-amber-600 hover:underline"
             >
               View Memory →

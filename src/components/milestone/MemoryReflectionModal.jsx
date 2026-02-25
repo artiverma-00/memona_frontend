@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { X, Heart, Share2 } from "lucide-react";
+import { X, MapPin, Tag } from "lucide-react";
 import Modal from "../shared/Modal";
+import ConfettiAnimation from "./ConfettiAnimation";
 
 export default function MemoryReflectionModal({
   milestone,
@@ -8,10 +8,6 @@ export default function MemoryReflectionModal({
   onClose,
   onOpenMemory,
 }) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [reflectionText, setReflectionText] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-
   const formatDate = (date) => {
     if (!date) return "";
     return new Date(date).toLocaleDateString("en-US", {
@@ -29,17 +25,32 @@ export default function MemoryReflectionModal({
     return today.getFullYear() - targetDate.getFullYear();
   };
 
-  const handleSaveReflection = async () => {
-    setIsSaving(true);
-    // TODO: Save reflection to backend
-    setTimeout(() => {
-      setIsSaving(false);
-      setReflectionText("");
-      onClose();
-    }, 1000);
-  };
-
   if (!milestone) return null;
+
+  const milestoneTitle = milestone.title || "Untitled Milestone";
+  const milestoneDescription = milestone.description || "";
+  const milestoneImage =
+    milestone.media?.[0]?.url ||
+    milestone.media_url ||
+    milestone.memory_thumbnail ||
+    null;
+  const linkedMemoryId = milestone.memory_id || null;
+  const locationName =
+    milestone.location?.name ||
+    milestone.location_name ||
+    milestone.location ||
+    "";
+  const tags = Array.isArray(milestone.tags) ? milestone.tags : [];
+
+  const isAnniversaryToday = (() => {
+    if (!milestone.celebration_date) return false;
+    const celebration = new Date(milestone.celebration_date);
+    const today = new Date();
+    return (
+      celebration.getMonth() === today.getMonth() &&
+      celebration.getDate() === today.getDate()
+    );
+  })();
 
   return (
     <Modal
@@ -48,31 +59,28 @@ export default function MemoryReflectionModal({
       size="lg"
       closeOnBackdropClick={false}
     >
-      <div className="bg-white rounded-3xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        {/* Header with image */}
-        <div className="relative h-64 sm:h-96 bg-gradient-to-br from-gray-200 to-gray-100 overflow-hidden">
-          {milestone.memory_thumbnail && (
+      <div className="relative max-h-[90vh] overflow-y-auto rounded-3xl bg-[var(--color-surface-bg)]">
+        <ConfettiAnimation isActive={isAnniversaryToday && isOpen} />
+
+        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-amber-50 to-stone-100 sm:h-96">
+          {milestoneImage && (
             <img
-              src={milestone.memory_thumbnail}
-              alt={milestone.memory_title}
-              className="w-full h-full object-cover"
+              src={milestoneImage}
+              alt={milestoneTitle}
+              className="h-full w-full object-cover"
             />
           )}
-
-          {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
 
-          {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors z-10"
+            className="absolute right-6 top-6 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white text-stone-900 transition-colors duration-200 hover:bg-stone-100"
           >
             <X size={24} className="text-gray-900" />
           </button>
 
-          {/* Years badge - bottom right */}
           <div className="absolute bottom-6 right-6">
-            <span className="inline-flex items-center px-4 py-2 bg-gold-500 text-white rounded-full font-bold shadow-lg">
+            <span className="inline-flex items-center rounded-full bg-[#F4B400] px-4 py-2 text-sm font-semibold text-stone-900 shadow-md">
               {calculateYearsSince(milestone.celebration_date)}{" "}
               {calculateYearsSince(milestone.celebration_date) === 1
                 ? "year"
@@ -81,108 +89,88 @@ export default function MemoryReflectionModal({
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8 sm:p-10">
-          {/* Title section */}
-          <div className="mb-6">
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-900 mb-2">
-              {milestone.memory_title}
+        <div className="space-y-6 p-6 sm:p-10">
+          <div>
+            <h2 className="mb-2 text-2xl font-bold text-[var(--color-text-primary)] sm:text-4xl">
+              {milestoneTitle}
             </h2>
-            <p className="text-gray-600 font-light">
+            <p className="text-sm text-[var(--color-text-secondary)] sm:text-base">
               {formatDate(milestone.celebration_date)}
             </p>
           </div>
 
-          {/* Description */}
-          {milestone.memory_description && (
-            <p className="text-gray-700 leading-relaxed mb-8 font-light">
-              {milestone.memory_description}
-            </p>
-          )}
-
-          {/* Reflection prompt */}
-          <div className="mb-8">
-            <label className="block mb-3">
-              <span className="text-lg font-semibold text-gray-900 mb-2 block">
-                📝 Reflect on this memory
-              </span>
-              <span className="text-sm text-gray-600 font-light">
-                How has this moment shaped you? What does it mean to you now?
-              </span>
-            </label>
-
-            <textarea
-              value={reflectionText}
-              onChange={(e) => setReflectionText(e.target.value)}
-              placeholder="Write your thoughts, feelings, and reflections about this milestone..."
-              className="w-full h-32 p-4 border-2 border-gold-100 rounded-xl focus:border-gold-400 focus:outline-none resize-none font-light text-gray-700 bg-gold-50 placeholder-gray-400"
-            />
-            <p className="text-xs text-gray-500 mt-2 font-light">
-              Your reflections are private and saved only to you.
+          <div className="rounded-2xl border border-[var(--color-surface-border)] bg-white/70 p-5">
+            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-stone-500">
+              Full Story
+            </h3>
+            <p className="text-[var(--color-text-secondary)] leading-relaxed">
+              {milestoneDescription ||
+                "This moment marks a meaningful chapter in your memory timeline."}
             </p>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Like button */}
-            <button
-              onClick={() => setIsLiked(!isLiked)}
-              className={`
-                flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300
-                ${
-                  isLiked
-                    ? "bg-rose-100 text-rose-600 border border-rose-200"
-                    : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"
-                }
-              `}
-            >
-              <Heart size={20} className={isLiked ? "fill-current" : ""} />
-              {isLiked ? "Liked" : "Like this memory"}
-            </button>
-
-            {/* Share button */}
-            <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 transition-all duration-300">
-              <Share2 size={20} />
-              Share
-            </button>
-          </div>
-
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Save reflection button */}
-            <button
-              onClick={handleSaveReflection}
-              disabled={isSaving || !reflectionText.trim()}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-gold-400 to-gold-500 text-white rounded-xl font-semibold hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? "Saving..." : "Save Reflection"}
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="my-8 border-t border-gray-200" />
-
-          {/* Additional info */}
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-4 bg-gold-50 rounded-xl">
-              <p className="text-2xl font-bold text-gold-600 mb-1">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-amber-50 p-4 text-center">
+              <p className="text-2xl font-bold text-[#F4B400]">
                 {calculateYearsSince(milestone.celebration_date)}
               </p>
-              <p className="text-xs text-gray-600 font-light">Years Ago</p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <p className="text-2xl font-bold text-blue-600 mb-1">
-                {milestone.reminder_enabled ? "✓" : "○"}
-              </p>
-              <p className="text-xs text-gray-600 font-light">
-                {milestone.reminder_enabled ? "Reminders On" : "No Reminders"}
+              <p className="text-xs uppercase tracking-wide text-stone-600">
+                Years Since
               </p>
             </div>
-            <div className="p-4 bg-rose-50 rounded-xl">
-              <p className="text-2xl font-bold text-rose-600 mb-1">★</p>
-              <p className="text-xs text-gray-600 font-light">Treasured</p>
+
+            <div className="rounded-xl bg-stone-50 p-4 text-center sm:col-span-2">
+              <div className="flex items-center justify-center gap-2 text-stone-600">
+                <MapPin size={15} />
+                <span className="text-sm font-medium">
+                  {locationName || "No location added"}
+                </span>
+              </div>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-[var(--color-surface-border)] bg-white/70 p-5">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-stone-700">
+              <Tag size={14} /> Tags
+            </div>
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                  <span
+                    key={`${tag}-${index}`}
+                    className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                No tags added
+              </p>
+            )}
+          </div>
+
+          {linkedMemoryId && (
+            <button
+              onClick={() => onOpenMemory?.(linkedMemoryId)}
+              className="w-full rounded-xl bg-[#F4B400] px-6 py-3 text-sm font-semibold text-stone-900 transition-all duration-200 hover:shadow-md"
+            >
+              Open Full Memory Page
+            </button>
+          )}
+
+          <button
+            onClick={onClose}
+            className="w-full rounded-xl border border-[var(--color-surface-border)] px-6 py-3 text-sm font-medium text-[var(--color-text-secondary)] transition-colors duration-200 hover:bg-stone-50"
+          >
+            Close
+          </button>
+          {isAnniversaryToday && (
+            <p className="text-center text-xs font-medium text-[#F4B400]">
+              Anniversary today ✨
+            </p>
+          )}
         </div>
       </div>
     </Modal>

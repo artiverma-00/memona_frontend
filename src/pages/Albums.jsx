@@ -12,8 +12,10 @@ import Loader from "../components/shared/Loader";
 const Albums = () => {
   const {
     albums,
+    memories,
     loading,
     fetchAlbums,
+    fetchMemories,
     createAlbum,
     updateAlbum,
     deleteAlbum,
@@ -24,7 +26,24 @@ const Albums = () => {
 
   useEffect(() => {
     fetchAlbums();
-  }, [fetchAlbums]);
+    fetchMemories();
+  }, [fetchAlbums, fetchMemories]);
+
+  const albumMemoryCounts = memories.reduce((accumulator, memory) => {
+    const albumId =
+      memory?.album_id ||
+      memory?.albumId ||
+      memory?.album?.id ||
+      memory?.album?._id ||
+      null;
+
+    if (!albumId) {
+      return accumulator;
+    }
+
+    accumulator[albumId] = (accumulator[albumId] || 0) + 1;
+    return accumulator;
+  }, {});
 
   const normalizeSearchText = (value) => String(value || "").toLowerCase();
 
@@ -143,7 +162,15 @@ const Albums = () => {
           {filteredAlbums.map((album) => (
             <AlbumCard
               key={album._id}
-              album={album}
+              album={{
+                ...album,
+                memoryCount:
+                  albumMemoryCounts[album._id] ??
+                  album.memoryCount ??
+                  album.memory_count ??
+                  album.memories_count ??
+                  0,
+              }}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />

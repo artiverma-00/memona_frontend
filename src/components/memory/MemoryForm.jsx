@@ -76,6 +76,26 @@ const MemoryForm = ({
     }
   };
 
+  const handleLocationCoordinateChange = (field, value) => {
+    setFormData((prev) => {
+      const nextCoordinates = {
+        ...(prev.location?.coordinates || {}),
+        [field]: value === "" ? null : Number(value),
+      };
+
+      return {
+        ...prev,
+        location: {
+          ...(prev.location || { name: "" }),
+          coordinates:
+            nextCoordinates.lat === null && nextCoordinates.lng === null
+              ? null
+              : nextCoordinates,
+        },
+      };
+    });
+  };
+
   const handleAddTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -262,6 +282,34 @@ const MemoryForm = ({
               }
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-transparent bg-gray-50 text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
               placeholder="Where did this happen?"
+            />
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              type="number"
+              step="any"
+              min={-90}
+              max={90}
+              value={formData.location?.coordinates?.lat ?? ""}
+              onChange={(e) =>
+                handleLocationCoordinateChange("lat", e.target.value)
+              }
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-transparent bg-gray-50 text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+              placeholder="Latitude (e.g. 28.6139)"
+            />
+
+            <input
+              type="number"
+              step="any"
+              min={-180}
+              max={180}
+              value={formData.location?.coordinates?.lng ?? ""}
+              onChange={(e) =>
+                handleLocationCoordinateChange("lng", e.target.value)
+              }
+              className="w-full px-4 py-2.5 rounded-xl border-2 border-transparent bg-gray-50 text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+              placeholder="Longitude (e.g. 77.2090)"
             />
           </div>
         </div>

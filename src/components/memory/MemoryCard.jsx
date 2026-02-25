@@ -7,6 +7,7 @@ import {
   FiMoreVertical,
   FiMapPin,
   FiCalendar,
+  FiClock,
   FiImage,
   FiEdit2,
   FiTrash2,
@@ -256,6 +257,14 @@ const MemoryCard = ({
             <div className="flex items-center gap-1">
               <FiCalendar className="w-3.5 h-3.5" />
               {formatDate(memory.date)}
+            </div>
+
+            <div className="flex items-center gap-1">
+              <FiClock className="w-3.5 h-3.5" />
+              Uploaded {formatDate(
+                memory.uploaded_at || memory.created_at,
+              )}{" "}
+              {formatDate(memory.uploaded_at || memory.created_at, "time")}
             </div>
 
             {memory.location?.name && (
