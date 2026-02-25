@@ -102,18 +102,18 @@ const SearchMemories = () => {
 
         {/* Active Filters Display */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 flex-wrap p-3 bg-indigo-50 rounded-lg">
-            <FiFilter className="w-4 h-4 text-indigo-600" />
+          <div className="flex items-center gap-2 flex-wrap p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
+            <FiFilter className="w-4 h-4 text-amber-600 mr-1" />
 
             {/* Keyword Badge */}
             {keywords && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full text-sm border border-indigo-200">
-                <span className="text-stone-700">{keywords}</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl text-sm border border-amber-200 shadow-sm text-stone-700">
+                <span className="font-medium">{keywords}</span>
                 <button
                   onClick={() => setKeywords("")}
-                  className="hover:text-indigo-600"
+                  className="hover:text-amber-600 transition-colors"
                 >
-                  <FiX className="w-3 h-3" />
+                  <FiX className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -122,24 +122,24 @@ const SearchMemories = () => {
             {selectedTags.map((tag) => (
               <div
                 key={tag}
-                className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full text-sm border border-indigo-200"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl text-sm border border-amber-200 shadow-sm text-stone-700"
               >
-                <FiTag className="w-3 h-3 text-indigo-600" />
-                <span className="text-stone-700">{tag}</span>
+                <FiTag className="w-3.5 h-3.5 text-amber-500" />
+                <span className="font-medium">#{tag}</span>
                 <button
                   onClick={() => handleToggleTag(tag)}
-                  className="hover:text-indigo-600"
+                  className="hover:text-amber-600 transition-colors"
                 >
-                  <FiX className="w-3 h-3" />
+                  <FiX className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
 
             {/* Date Range Badge */}
             {(startDate || endDate) && (
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full text-sm border border-indigo-200">
-                <FiCalendar className="w-3 h-3 text-indigo-600" />
-                <span className="text-stone-700">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl text-sm border border-amber-200 shadow-sm text-stone-700">
+                <FiCalendar className="w-3.5 h-3.5 text-amber-500" />
+                <span className="font-medium">
                   {startDate && formatDate(startDate)}
                   {startDate && endDate && " → "}
                   {endDate && formatDate(endDate)}
@@ -149,9 +149,9 @@ const SearchMemories = () => {
                     setStartDate("");
                     setEndDate("");
                   }}
-                  className="hover:text-indigo-600"
+                  className="hover:text-amber-600 transition-colors"
                 >
-                  <FiX className="w-3 h-3" />
+                  <FiX className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -160,7 +160,7 @@ const SearchMemories = () => {
             {hasActiveFilters && (
               <button
                 onClick={handleClearFilters}
-                className="ml-auto text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="ml-auto text-sm text-amber-600 hover:text-amber-700 font-bold px-3 py-1 hover:bg-amber-100 rounded-lg transition-all"
               >
                 Clear All
               </button>
@@ -170,77 +170,97 @@ const SearchMemories = () => {
       </div>
 
       {/* Expanded Filters Panel */}
-      {showFilters && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="p-6 bg-white border border-gray-200 rounded-xl space-y-6"
-        >
-          {/* Tag Filter */}
-          <div>
-            <h3 className="text-sm font-semibold text-stone-900 mb-3">
-              Filter by Tags ({selectedTags.length} selected)
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {availableTags.length > 0 ? (
-                availableTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => handleToggleTag(tag)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      selectedTags.includes(tag)
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-200 text-stone-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))
-              ) : (
-                <p className="text-stone-500 text-sm">
-                  No tags available in your memories
-                </p>
-              )}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="p-8 bg-white border border-stone-100 rounded-3xl shadow-xl shadow-stone-200/50 space-y-8"
+          >
+            {/* Tag Filter */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <FiTag className="text-amber-600 w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-stone-900">
+                  Filter by Tags
+                  <span className="ml-2 text-sm font-normal text-stone-400">
+                    ({selectedTags.length} selected)
+                  </span>
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                {availableTags.length > 0 ? (
+                  availableTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => handleToggleTag(tag)}
+                      className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                        selectedTags.includes(tag)
+                          ? "bg-amber-500 text-white shadow-lg shadow-amber-200 shadow-sm"
+                          : "bg-stone-50 text-stone-600 hover:bg-stone-100 border border-stone-100"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-stone-400 text-sm italic">
+                    No tags available to filter
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Date Range Filter */}
-          <div>
-            <h3 className="text-sm font-semibold text-stone-900 mb-3">
-              Filter by Date Range
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-stone-600 mb-2">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={`${dateRange.minYear}-01-01`}
-                  max={`${dateRange.maxYear}-12-31`}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+            {/* Date Range Filter */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <FiCalendar className="text-amber-600 w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-stone-900">
+                  Filter by Date Range
+                </h3>
               </div>
-              <div>
-                <label className="block text-sm text-stone-600 mb-2">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={`${dateRange.minYear}-01-01`}
-                  max={`${dateRange.maxYear}-12-31`}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full px-5 py-3.5 bg-stone-50 border-2 border-transparent rounded-2xl focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-400/5 outline-none text-stone-800 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest ml-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full px-5 py-3.5 bg-stone-50 border-2 border-transparent rounded-2xl focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-400/5 outline-none text-stone-800 transition-all"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="px-6 py-2.5 bg-stone-900 text-white rounded-xl font-bold text-sm hover:bg-stone-800 transition-all shadow-lg"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search Results */}
       {searchResults.length > 0 ? (

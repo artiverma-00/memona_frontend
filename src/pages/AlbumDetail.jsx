@@ -55,39 +55,95 @@ const AlbumDetail = () => {
           const payload = response.data?.data?.album || response.data?.data;
           setAlbum(payload || null);
 
-          const initialMedia = Array.isArray(payload?.memories)
+          // Standard parsing of memories provided by the server
+          const rawMemories = Array.isArray(payload?.memories)
             ? payload.memories
-                .flatMap((memory) => {
-                  if (Array.isArray(memory?.media)) {
-                    return memory.media.map((item, index) => ({
-                      id: `${memory._id || memory.id}-${index}`,
-                      title: memory.title || "Untitled",
-                      type: item?.type || "image",
-                      url: item?.url || null,
-                      createdAt: memory.date || memory.created_at || null,
-                    }));
-                  }
+            : [];
+          let fetchedMedia = rawMemories
+            .flatMap((item) => {
+              // item could be a memory object or { memory: {...} } from older join results
+              const memory = item.memory || item;
+              if (!memory || typeof memory !== "object") return [];
 
-                  if (memory?.media_url) {
+              // If it already has a media array (standardized), use it
+              if (Array.isArray(memory.media) && memory.media.length > 0) {
+                return memory.media.map((mediaItem, index) => ({
+                  id: `${memory._id || memory.id}-${index}`,
+                  title: memory.title || "Untitled",
+                  type: mediaItem.type || mediaItem.resource_type || "image",
+                  url: mediaItem.url || mediaItem.secure_url,
+                  createdAt: memory.date || memory.created_at || null,
+                }));
+              }
+
+              // Fallback for direct media fields
+              if (memory.media_url) {
+                return [
+                  {
+                    id: memory._id || memory.id,
+                    title: memory.title || "Untitled",
+                    type: memory.media_type || "image",
+                    url: memory.media_url,
+                    createdAt: memory.date || memory.created_at || null,
+                  },
+                ];
+              }
+
+              return [];
+            })
+            .filter((item) => item.url);
+
+          // FALLBACK ERROR CORRECTION: If albumMedia is empty but we suspect there are records,
+          // try to search for memories that have this album id in their metadata/junction.
+          if (fetchedMedia.length === 0) {
+            console.log(
+              "[ALBUM-DETAIL] No media found in payload, trying fallback search...",
+            );
+            try {
+              // Search for all memories for this user
+              const allMemoriesResp = await memoriesAPI.getAll();
+              if (allMemoriesResp.data?.success) {
+                const allMemories = Array.isArray(allMemoriesResp.data.data)
+                  ? allMemoriesResp.data.data
+                  : allMemoriesResp.data.data?.memories || [];
+
+                // Filter memories that belong to this album
+                const albumSpecificMemories = allMemories.filter((m) => {
+                  const mId =
+                    m.album_id || m.albumId || m.album_memories?.[0]?.album_id;
+                  return mId === id;
+                });
+
+                if (albumSpecificMemories.length > 0) {
+                  const fallbackMedia = albumSpecificMemories.flatMap((m) => {
+                    // Try to get media URL
+                    const mUrl = m.media_url || m.media?.[0]?.url;
+                    if (!mUrl) return [];
                     return [
                       {
-                        id: memory._id || memory.id,
-                        title: memory.title || "Untitled",
-                        type: memory.media_type || "image",
-                        url: memory.media_url,
-                        createdAt: memory.date || memory.created_at || null,
+                        id: m._id || m.id,
+                        title: m.title || "Untitled",
+                        type: m.media_type || m.media?.[0]?.type || "image",
+                        url: mUrl,
+                        createdAt: m.date || m.created_at || null,
                       },
                     ];
-                  }
+                  });
+                  fetchedMedia = fallbackMedia;
+                }
+              }
+            } catch (fallbackError) {
+              console.error(
+                "[ALBUM-DETAIL] Fallback search failed:",
+                fallbackError,
+              );
+            }
+          }
 
-                  return [];
-                })
-                .filter((item) => item.url)
-            : [];
-
-          setAlbumMedia(initialMedia);
+          setAlbumMedia(fetchedMedia);
         }
-      } catch {
+      } catch (err) {
+        console.error("[ALBUM-DETAIL] Fetch failed:", err);
         setAlbum(null);
         setAlbumMedia([]);
       } finally {
@@ -207,18 +263,23 @@ const AlbumDetail = () => {
               refreshResponse.data?.data?.album || refreshResponse.data?.data;
             if (refreshedAlbum?.memories) {
               // Rebuild media list from refreshed album
-              const updatedMedia = refreshedAlbum.memories
-                .flatMap((memory) => {
-                  if (Array.isArray(memory?.media)) {
-                    return memory.media.map((item, index) => ({
+              const updatedMedia = (refreshedAlbum.memories || [])
+                .flatMap((item) => {
+                  const memory = item.memory || item;
+                  if (!memory || typeof memory !== "object") return [];
+
+                  if (Array.isArray(memory.media) && memory.media.length > 0) {
+                    return memory.media.map((mediaItem, index) => ({
                       id: `${memory._id || memory.id}-${index}`,
                       title: memory.title || "Untitled",
-                      type: item?.type || "image",
-                      url: item?.url || null,
+                      type:
+                        mediaItem.type || mediaItem.resource_type || "image",
+                      url: mediaItem.url || mediaItem.secure_url,
                       createdAt: memory.date || memory.created_at || null,
                     }));
                   }
-                  if (memory?.media_url) {
+
+                  if (memory.media_url) {
                     return [
                       {
                         id: memory._id || memory.id,

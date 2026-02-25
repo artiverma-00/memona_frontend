@@ -1,6 +1,8 @@
 import { Bell, BellOff, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { useMemory } from "../../context/MemoryContext";
+import { confirmDelete } from "../../components/shared/ConfirmToast";
 
 export default function MilestoneCard({
   milestone,
@@ -45,18 +47,19 @@ export default function MilestoneCard({
 
   const handleDelete = async (e) => {
     e.stopPropagation();
-    if (
-      window.confirm(
-        "Are you sure you want to delete this milestone? This action cannot be undone.",
-      )
-    ) {
-      setIsDeleting(true);
-      try {
-        await deleteMilestone(milestone._id);
-      } catch (error) {
-        console.error("Failed to delete milestone:", error);
-        setIsDeleting(false);
-      }
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this milestone? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteMilestone(milestone._id);
+      toast.success("Milestone deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete milestone:", error);
+      toast.error("Failed to delete milestone");
+      setIsDeleting(false);
     }
   };
 

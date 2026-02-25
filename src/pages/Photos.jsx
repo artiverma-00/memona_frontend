@@ -11,6 +11,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useMemory } from "../context/MemoryContext";
+import { confirmDelete } from "../components/shared/ConfirmToast";
 import MemoryCard from "../components/memory/MemoryCard";
 import MemoryForm from "../components/memory/MemoryForm";
 import SearchBar from "../components/shared/SearchBar";
@@ -135,9 +136,12 @@ const Photos = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this memory?")) {
-      await deleteMemory(id);
-    }
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this memory?",
+    );
+    if (!confirmed) return;
+
+    await deleteMemory(id);
   };
 
   if (loading) {

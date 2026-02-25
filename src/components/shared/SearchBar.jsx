@@ -4,7 +4,7 @@ import { FiSearch, FiX, FiFilter } from "react-icons/fi";
 import { debounce } from "../../utils/formatDate";
 
 const SearchBar = ({
-  placeholder = "Search...",
+  placeholder = "Search memories...",
   onSearch,
   onFilterClick,
   filtersActive = false,
@@ -44,20 +44,22 @@ const SearchBar = ({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative group ${className}`}>
       <div
         className={`
-          flex items-center gap-2 px-4 py-2.5 
-          bg-gray-100 
-          rounded-xl border-2 transition-all duration-200
+          flex items-center gap-3 px-4 py-2.5 
+          bg-white
+          rounded-2xl border-2 transition-all duration-300
           ${
             isFocused
-              ? "border-indigo-500 ring-2 ring-indigo-500/20"
-              : "border-transparent"
+              ? "border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)] ring-4 ring-amber-500/10"
+              : "border-stone-200 hover:border-stone-300"
           }
         `}
       >
-        <FiSearch className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        <FiSearch
+          className={`w-5 h-5 flex-shrink-0 transition-colors duration-300 ${isFocused ? "text-amber-600" : "text-stone-500"}`}
+        />
 
         <input
           ref={inputRef}
@@ -69,42 +71,53 @@ const SearchBar = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="
-            flex-1 bg-transparent 
-            text-gray-900 
-            placeholder-gray-400
-            outline-none text-sm
+            flex-1 bg-white
+            text-stone-800 
+            placeholder-stone-400
+            outline-none text-sm font-medium
           "
         />
 
-        <AnimatePresence>
-          {query && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleClear}
-              className="p-1 rounded-full hover:bg-gray-200 transition-colors"
-            >
-              <FiX className="w-4 h-4 text-gray-500" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+        <div className="flex items-center gap-1.5">
+          <AnimatePresence>
+            {query && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={handleClear}
+                className="p-1 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-600 transition-all"
+              >
+                <FiX className="w-4 h-4" />
+              </motion.button>
+            )}
+          </AnimatePresence>
 
-        {showFilterButton && (
-          <button
-            onClick={onFilterClick}
-            className={`
-              p-2 rounded-lg transition-colors
-              ${
-                filtersActive
-                  ? "bg-indigo-100 text-indigo-600"
-                  : "hover:bg-gray-200 text-gray-500"
-              }
-            `}
-          >
-            <FiFilter className="w-4 h-4" />
-          </button>
-        )}
+          {!query && !isFocused && (
+            <div className="hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded border border-stone-200 bg-white text-[10px] font-bold text-stone-400 select-none">
+              <span>⌘</span>
+              <span>K</span>
+            </div>
+          )}
+
+          {showFilterButton && <div className="w-px h-5 bg-stone-200 mx-1" />}
+
+          {showFilterButton && (
+            <button
+              onClick={onFilterClick}
+              className={`
+                p-2 rounded-xl transition-all duration-300
+                ${
+                  filtersActive
+                    ? "bg-amber-100 text-amber-600 shadow-sm"
+                    : "hover:bg-amber-50 text-stone-500 hover:text-amber-600"
+                }
+              `}
+            >
+              <FiFilter className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

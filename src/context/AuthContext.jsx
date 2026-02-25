@@ -98,14 +98,12 @@ export const AuthProvider = ({ children }) => {
       const data = response?.data?.data || {};
       const userFromApi = normalizeUser(data.user);
 
-      if (!userFromApi) {
+      if (!data.access_token || !userFromApi) {
         throw new Error("Invalid register response");
       }
 
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userFromApi));
-      if (data.access_token) {
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.access_token);
-      }
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.access_token);
       setUser(userFromApi);
       return { success: true, user: userFromApi };
     } catch (err) {

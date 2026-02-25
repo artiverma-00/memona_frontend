@@ -58,6 +58,22 @@ const AUTH_ERROR_MAP = {
     toastType: "error",
     field: "general",
   },
+  // Auth service/network errors - toast.error
+  "Authentication service is unreachable. Please check your internet or VPN and try again.":
+    {
+      userMessage:
+        "Unable to connect right now. Please check your internet/VPN and try again.",
+      display: "toast",
+      toastType: "error",
+      field: "general",
+    },
+  "fetch failed": {
+    userMessage:
+      "Unable to connect right now. Please check your internet and try again.",
+    display: "toast",
+    toastType: "error",
+    field: "general",
+  },
   // Email already exists - toast.warning
   "An account with this email already exists": {
     userMessage:
@@ -74,8 +90,24 @@ export const mapAuthError = (backendMessage) => {
     return AUTH_ERROR_MAP[message];
   }
 
+  if (
+    message.toLowerCase().includes("authentication service is unreachable") ||
+    message.toLowerCase().includes("fetch failed") ||
+    message.toLowerCase().includes("connect timeout") ||
+    message.toLowerCase().includes("certificate") ||
+    message.toLowerCase().includes("tls")
+  ) {
+    return {
+      userMessage:
+        "Unable to connect right now. Please check your internet/VPN and try again.",
+      display: "toast",
+      toastType: "error",
+      field: "general",
+    };
+  }
+
   return {
-    userMessage: "An unexpected error occurred. Please try again.",
+    userMessage: "Something went wrong. Please try again.",
     display: "toast",
     toastType: "error",
     field: "general",

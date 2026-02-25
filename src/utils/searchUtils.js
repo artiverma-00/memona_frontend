@@ -53,8 +53,8 @@ export const searchByTags = (memories, tags) => {
 export const searchByDateRange = (memories, startDate, endDate) => {
   if (!startDate && !endDate) return memories;
 
-  const start = startDate ? new Date(startDate) : null;
-  const end = endDate ? new Date(endDate) : null;
+  let start = startDate ? new Date(startDate) : null;
+  let end = endDate ? new Date(endDate) : null;
 
   // Set end date to end of day if only start is provided
   if (start && !end) end = new Date(start);

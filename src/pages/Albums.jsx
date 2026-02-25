@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiPlus, FiImage } from "react-icons/fi";
+import { toast } from "react-toastify";
 import { useMemory } from "../context/MemoryContext";
+import { confirmDelete } from "../components/shared/ConfirmToast";
 import AlbumCard from "../components/album/AlbumCard";
 import AlbumForm from "../components/album/AlbumForm";
 import SearchBar from "../components/shared/SearchBar";
@@ -51,8 +53,16 @@ const Albums = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this album?")) {
-      await deleteAlbum(id);
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this album?",
+    );
+    if (!confirmed) return;
+
+    const result = await deleteAlbum(id);
+    if (result?.success) {
+      toast.success("Album deleted successfully!");
+    } else {
+      toast.error(result?.error || "Failed to delete album");
     }
   };
 

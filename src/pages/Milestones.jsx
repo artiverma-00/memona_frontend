@@ -8,7 +8,9 @@ import {
   FiFilter,
   FiBell,
 } from "react-icons/fi";
+import { toast } from "react-toastify";
 import { useMemory } from "../context/MemoryContext";
+import { confirmDelete } from "../components/shared/ConfirmToast";
 import MemoryMilestone from "../components/memory/MemoryMilestone";
 import ReflectionPromptModal from "../components/memory/ReflectionPromptModal";
 import Modal from "../components/shared/Modal";
@@ -26,6 +28,7 @@ import {
   formatDaysUntil,
   showMilestoneCreated,
   showMilestoneUpdated,
+  showMilestoneDeleted,
 } from "../utils/notificationUtils";
 
 const Milestones = () => {
@@ -107,8 +110,16 @@ const Milestones = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this milestone?")) {
-      await deleteMilestone(id);
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this milestone?",
+    );
+    if (!confirmed) return;
+
+    const result = await deleteMilestone(id);
+    if (result?.success) {
+      showMilestoneDeleted({ title: "Milestone" });
+    } else {
+      toast.error(result?.error || "Failed to delete milestone");
     }
   };
 

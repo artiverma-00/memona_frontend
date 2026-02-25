@@ -12,6 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../hooks/useAuth";
 import { useMemory } from "../context/MemoryContext";
+import { confirmDelete } from "../components/shared/ConfirmToast";
 import MemoryCard from "../components/memory/MemoryCard";
 import AlbumCard from "../components/album/AlbumCard";
 import MemoryForm from "../components/memory/MemoryForm";
@@ -91,6 +92,9 @@ const Dashboard = () => {
       memory?.albumId ||
       memory?.album?.id ||
       memory?.album?._id ||
+      (Array.isArray(memory?.album_memories) &&
+        memory.album_memories.length > 0 &&
+        memory.album_memories[0].album_id) ||
       null
     );
   };
@@ -157,7 +161,11 @@ const Dashboard = () => {
   });
 
   const handleDeleteAlbum = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this album?")) return;
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this album?",
+    );
+    if (!confirmed) return;
+
     const result = await deleteAlbum(id);
     if (result?.success) {
       toast.success("Album deleted successfully!");
@@ -167,7 +175,8 @@ const Dashboard = () => {
   };
 
   const handleDeleteMemory = async (id) => {
-    if (!window.confirm("Delete this memory?")) {
+    const confirmed = await confirmDelete("Delete this memory?");
+    if (!confirmed) {
       return;
     }
 
@@ -187,6 +196,26 @@ const Dashboard = () => {
       memoryDate.getFullYear() === now.getFullYear()
     );
   });
+
+  const thisMonthAlbums = albums.filter((a) => {
+    const albumDate = new Date(a.created_at || a.date);
+    const now = new Date();
+    return (
+      albumDate.getMonth() === now.getMonth() &&
+      albumDate.getFullYear() === now.getFullYear()
+    );
+  });
+
+  const monthBreakdown = thisMonthMemories.reduce(
+    (acc, m) => {
+      const type = m.media_type || m.media?.[0]?.type || "image";
+      if (type === "video") acc.video++;
+      else if (type === "audio") acc.audio++;
+      else acc.photo++;
+      return acc;
+    },
+    { photo: 0, video: 0, audio: 0 },
+  );
 
   const stats = [
     {
@@ -215,7 +244,8 @@ const Dashboard = () => {
     },
     {
       label: "This Month",
-      value: thisMonthMemories.length,
+      value: thisMonthMemories.length + thisMonthAlbums.length,
+      subValue: `${thisMonthAlbums.length}alb • ${monthBreakdown.photo}ph • ${monthBreakdown.video}vid • ${monthBreakdown.audio}aud`,
       icon: FiSun,
       gradient: "from-amber-300 to-amber-400",
       link: "/timeline",
@@ -305,9 +335,16 @@ const Dashboard = () => {
                 <stat.icon className="w-4 h-4 text-white" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-[var(--color-text-primary)] leading-tight">
-              {stat.value}
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[var(--color-text-primary)] leading-tight">
+                {stat.value}
+              </p>
+              {stat.subValue && (
+                <p className="text-xs text-[var(--color-text-secondary)] font-medium">
+                  {stat.subValue}
+                </p>
+              )}
+            </div>
           </Link>
         ))}
       </motion.div>
@@ -367,6 +404,29 @@ const Dashboard = () => {
         )}
       </motion.div>
 
+      {/* Your Milestones Section */}
+      {milestones.length > 0 && (
+        <motion.div variants={item} className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+              <FiStar className="text-amber-500" />
+              Your Milestones
+            </h2>
+            <Link
+              to="/milestones"
+              className="text-amber-600 text-sm font-semibold hover:underline flex items-center gap-1 bg-amber-50 px-3 py-1 rounded-full"
+            >
+              Manage All →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {milestones.slice(0, 3).map((milestone) => (
+              <MemoryMilestone key={milestone._id} milestone={milestone} />
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Horizontal Photo Grid Section (Renamed from Recent Memories) */}
       <motion.div variants={item} className="space-y-4">
         <div className="flex items-center justify-between">
@@ -384,23 +444,26 @@ const Dashboard = () => {
 
         {recentItems.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {recentItemsWithAlbumData.map((item) =>
-              item.type === "album" ? (
-                <AlbumCard
-                  key={item._id}
-                  album={item}
-                  onDelete={handleDeleteAlbum}
-                  showActions={true}
-                />
-              ) : (
-                <MemoryCard
-                  key={item._id}
-                  memory={item}
-                  onToggleFavorite={toggleFavorite}
-                  onDelete={handleDeleteMemory}
-                />
-              ),
-            )}
+            {recentItemsWithAlbumData
+              .filter((item) => item.type === "album" || !item.isMilestone)
+              .slice(0, 8)
+              .map((item) =>
+                item.type === "album" ? (
+                  <AlbumCard
+                    key={item._id}
+                    album={item}
+                    onDelete={handleDeleteAlbum}
+                    showActions={true}
+                  />
+                ) : (
+                  <MemoryCard
+                    key={item._id}
+                    memory={item}
+                    onToggleFavorite={toggleFavorite}
+                    onDelete={handleDeleteMemory}
+                  />
+                ),
+              )}
           </div>
         ) : (
           <div className="bg-[var(--color-surface-bg)] rounded-2xl p-8 text-center border border-[var(--color-surface-border)] shadow-sm">

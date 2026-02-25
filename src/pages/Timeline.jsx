@@ -4,6 +4,7 @@ import { FiPlus, FiGrid, FiList, FiCalendar } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useMemory } from "../context/MemoryContext";
 import { useLocation, useNavigate } from "react-router-dom";
+import { confirmDelete } from "../components/shared/ConfirmToast";
 import MemoryCard from "../components/memory/MemoryCard";
 import MemoryForm from "../components/memory/MemoryForm";
 import TimelineItem from "../components/user/TimelineItem";
@@ -128,9 +129,12 @@ const Timeline = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this memory?")) {
-      await deleteMemory(id);
-    }
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this memory?",
+    );
+    if (!confirmed) return;
+
+    await deleteMemory(id);
   };
 
   // Get all timeline entries sorted by date

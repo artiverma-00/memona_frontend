@@ -49,6 +49,7 @@ const normalizeMemory = (memory) => {
     ...memory,
     _id: normalizedId,
     id: normalizedId,
+    album_id: memory.album_id || memory.album_memories?.[0]?.album_id || null,
     date: memory.date || memory.created_at || null,
     location: locationFromLegacy,
     media,
@@ -57,6 +58,9 @@ const normalizeMemory = (memory) => {
     isPrivate:
       memory.isPrivate ??
       (memory.is_public !== undefined ? !memory.is_public : true),
+    isFavorite:
+      memory.isFavorite ??
+      (memory.is_favorite !== undefined ? memory.is_favorite : false),
   };
 };
 
@@ -161,6 +165,7 @@ const buildMemoryPayload = (data, file = null) => {
 
   const basePayload = {
     title: data.title,
+    date: data.date,
   };
 
   if (data.description) {

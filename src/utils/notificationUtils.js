@@ -1,5 +1,8 @@
 /**
  * Notification utilities for milestone reminders and reflections
+ * 
+ * Note: For delete confirmations, use the ConfirmToast component
+ * import { confirmDelete } from "../components/shared/ConfirmToast";
  */
 
 import { toast } from "react-toastify";
