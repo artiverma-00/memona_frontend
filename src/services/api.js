@@ -130,4 +130,16 @@ export const milestonesAPI = {
   getTodayReminders: () => api.get("/milestones/today"),
 };
 
+// Voice Reflections API
+export const voiceReflectionsAPI = {
+  getAll: () => api.get("/voice-reflections"),
+  getById: (id) => api.get(`/voice-reflections/${id}`),
+  upload: (formData) =>
+    api.post("/voice-reflections/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 600000,
+    }),
+  delete: (id) => api.delete(`/voice-reflections/${id}`),
+};
+
 export default api;

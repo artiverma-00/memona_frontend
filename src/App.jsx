@@ -31,11 +31,11 @@ import Timeline from "./pages/Timeline";
 import Albums from "./pages/Albums";
 import AlbumDetail from "./pages/AlbumDetail";
 import Milestones from "./pages/Milestones";
-import MapView from "./pages/MapView";
 import SharedMemories from "./pages/SharedMemories";
 import Photos from "./pages/Photos";
 import SearchMemories from "./pages/SearchMemories";
 import NotFound from "./pages/NotFound";
+import VoiceReflections from "./pages/VoiceReflections";
 
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -163,13 +163,7 @@ const AppRoutes = () => (
       />
       <Route
         path="/map"
-        element={
-          <UserRoute>
-            <UserLayout>
-              <MapView />
-            </UserLayout>
-          </UserRoute>
-        }
+        element={<Navigate to="/voice-reflections" replace />}
       />
       <Route
         path="/photos"
@@ -197,6 +191,16 @@ const AppRoutes = () => (
           <UserRoute>
             <UserLayout>
               <SharedMemories />
+            </UserLayout>
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/voice-reflections"
+        element={
+          <UserRoute>
+            <UserLayout>
+              <VoiceReflections />
             </UserLayout>
           </UserRoute>
         }

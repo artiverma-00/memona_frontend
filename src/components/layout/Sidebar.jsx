@@ -1,25 +1,34 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiHome, FiClock, FiImage, FiMapPin, FiStar, FiUsers,
-  FiChevronLeft, FiChevronRight, FiTrendingUp
-} from 'react-icons/fi';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiHome,
+  FiClock,
+  FiImage,
+  FiMapPin,
+  FiStar,
+  FiUsers,
+  FiChevronLeft,
+  FiChevronRight,
+  FiTrendingUp,
+  FiMic,
+} from "react-icons/fi";
 
 const Sidebar = ({ collapsed = false, onToggle }) => {
   const location = useLocation();
-  
+
   const mainLinks = [
-    { path: '/dashboard', label: 'Dashboard', icon: FiHome },
-    { path: '/timeline', label: 'Timeline', icon: FiClock },
-    { path: '/albums', label: 'Albums', icon: FiImage },
-    { path: '/milestones', label: 'Milestones', icon: FiStar },
-    { path: '/map', label: 'Map View', icon: FiMapPin },
+    { path: "/dashboard", label: "Dashboard", icon: FiHome },
+    { path: "/timeline", label: "Timeline", icon: FiClock },
+    { path: "/albums", label: "Albums", icon: FiImage },
+    { path: "/milestones", label: "Milestones", icon: FiStar },
+    { path: "/map", label: "Map View", icon: FiMapPin },
+    { path: "/voice-reflections", label: "Voice Reflections", icon: FiMic },
   ];
 
   const secondaryLinks = [
-    { path: '/shared', label: 'Shared', icon: FiUsers },
-    { path: '/trending', label: 'Trending', icon: FiTrendingUp },
+    { path: "/shared", label: "Shared", icon: FiUsers },
+    { path: "/trending", label: "Trending", icon: FiTrendingUp },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -52,9 +61,10 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg
                 transition-all duration-200 group relative
-                ${isActive(link.path)
-                  ? 'bg-amber-50 text-amber-700'
-                  : 'text-stone-600 hover:bg-stone-100'
+                ${
+                  isActive(link.path)
+                    ? "bg-amber-50 text-amber-700"
+                    : "text-stone-600 hover:bg-stone-100"
                 }
               `}
             >
@@ -69,7 +79,7 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
                 {!collapsed && (
                   <motion.span
                     initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
+                    animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                     className="text-sm font-medium whitespace-nowrap overflow-hidden"
                   >
@@ -93,9 +103,10 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg
                 transition-all duration-200
-                ${isActive(link.path)
-                  ? 'bg-amber-50 text-amber-700'
-                  : 'text-stone-600 hover:bg-stone-100'
+                ${
+                  isActive(link.path)
+                    ? "bg-amber-50 text-amber-700"
+                    : "text-stone-600 hover:bg-stone-100"
                 }
               `}
             >
@@ -104,7 +115,7 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
                 {!collapsed && (
                   <motion.span
                     initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
+                    animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                     className="text-sm font-medium whitespace-nowrap overflow-hidden"
                   >
@@ -129,7 +140,9 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
               <p className="text-xs opacity-80 mb-1">This Month</p>
               <p className="text-2xl font-bold">12 Memories</p>
-              <p className="text-xs opacity-80 mt-2">↑ 3 more than last month</p>
+              <p className="text-xs opacity-80 mt-2">
+                ↑ 3 more than last month
+              </p>
             </div>
           </motion.div>
         )}
@@ -139,4 +152,3 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
 };
 
 export default Sidebar;
-
