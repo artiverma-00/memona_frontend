@@ -263,7 +263,12 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
     startIdleVisualization,
   ]);
 
-  return { canvasRef, startVisualization, stopVisualization };
+  return {
+    canvasRef,
+    startVisualization,
+    stopVisualization,
+    startIdleVisualization,
+  };
 };
 
 const VoiceReflections = () => {
@@ -284,10 +289,26 @@ const VoiceReflections = () => {
   const timerRef = useRef(null);
   const audioRef = useRef(null);
   const previewAudioRef = useRef(null);
-  const { canvasRef, stopVisualization } = useAudioVisualizer(
+  const { canvasRef, stopVisualization, startIdleVisualization } =
+    useAudioVisualizer(audioBlob, isRecording);
+
+  useEffect(() => {
+    if (!loading && !audioBlob && !isRecording) {
+      startIdleVisualization();
+    }
+
+    return () => {
+      if (!loading) {
+        stopVisualization();
+      }
+    };
+  }, [
+    loading,
     audioBlob,
     isRecording,
-  );
+    startIdleVisualization,
+    stopVisualization,
+  ]);
 
   // Fetch existing reflections
   const fetchReflections = useCallback(async () => {
