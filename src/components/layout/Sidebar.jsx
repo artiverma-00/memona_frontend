@@ -5,7 +5,6 @@ import {
   FiHome,
   FiClock,
   FiImage,
-  FiMapPin,
   FiStar,
   FiUsers,
   FiChevronLeft,
@@ -22,7 +21,6 @@ const Sidebar = ({ collapsed = false, onToggle }) => {
     { path: "/timeline", label: "Timeline", icon: FiClock },
     { path: "/albums", label: "Albums", icon: FiImage },
     { path: "/milestones", label: "Milestones", icon: FiStar },
-    { path: "/map", label: "Map View", icon: FiMapPin },
     { path: "/voice-reflections", label: "Voice Reflections", icon: FiMic },
   ];
 

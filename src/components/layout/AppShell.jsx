@@ -7,7 +7,6 @@ import {
   FiGrid,
   FiClock,
   FiImage,
-  FiMapPin,
   FiStar,
   FiUsers,
   FiSettings,
@@ -40,7 +39,6 @@ export default function AppShell({
       icon: FiStar,
       path: "/milestones",
     },
-    { id: "map", label: "Map", icon: FiMapPin, path: "/map" },
     { id: "shared", label: "Shared", icon: FiUsers, path: "/shared" },
   ];
 
