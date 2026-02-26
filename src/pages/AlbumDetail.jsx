@@ -445,8 +445,8 @@ const AlbumDetail = () => {
             No media uploaded yet.
           </div>
         ) : (
-          <div className="mt-4 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {albumMedia.map((item) => (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {albumMedia.map((item, index) => (
               <MemoryCard
                 key={item.id}
                 memory={{
@@ -457,6 +457,13 @@ const AlbumDetail = () => {
                 }}
                 showActions={false}
                 aspectRatio="aspect-video"
+                previewItems={albumMedia.map((mediaItem) => ({
+                  _id: String(mediaItem.id).split("-")[0],
+                  title: mediaItem.title,
+                  media: [{ type: mediaItem.type, url: mediaItem.url }],
+                  date: mediaItem.createdAt,
+                }))}
+                previewIndex={index}
               />
             ))}
           </div>

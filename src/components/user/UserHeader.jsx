@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiMenu,
-  FiSearch,
-  FiBell,
-  FiX,
-  FiSettings,
-  FiPlus,
-} from "react-icons/fi";
+import { FiMenu, FiBell, FiSettings, FiPlus } from "react-icons/fi";
 import { useAuth } from "../../hooks/useAuth";
 import { memoriesAPI } from "../../services/api";
 import { formatDate } from "../../utils/formatDate";
@@ -44,8 +37,6 @@ const isSharedMemory = (memory) => {
 };
 
 const UserHeader = ({ onMobileMenuToggle }) => {
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationItems, setNotificationItems] = useState([]);
@@ -175,45 +166,21 @@ const UserHeader = ({ onMobileMenuToggle }) => {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
-          {/* Search */}
-          <div className="hidden md:block">
-            <div className="search-input">
-              <FiSearch className="w-4 h-4 text-stone-400" />
-              <input
-                type="text"
-                placeholder="Search memories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 lg:w-64"
-              />
-            </div>
-          </div>
-
           <Link
             to="/photos"
             className="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 transition-colors"
           >
-            Memories
+            <FiPlus className="w-4 h-4" />
+            Add Memories
           </Link>
-
-          {/* Mobile Search Toggle */}
-          <button
-            onClick={() => setSearchOpen(!searchOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-[var(--color-page-bg)] transition-colors"
-          >
-            {searchOpen ? (
-              <FiX className="w-5 h-5 text-[var(--color-text-secondary)]" />
-            ) : (
-              <FiSearch className="w-5 h-5 text-[var(--color-text-secondary)]" />
-            )}
-          </button>
 
           <Link
             to="/photos"
             className="md:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 text-stone-900 text-sm font-semibold hover:bg-amber-600 transition-colors"
-            aria-label=" Memories"
+            aria-label="Add Memories"
           >
-            Memories
+            <FiPlus className="w-4 h-4" />
+            Add
           </Link>
 
           {/* Notifications */}
@@ -345,30 +312,6 @@ const UserHeader = ({ onMobileMenuToggle }) => {
           </div>
         </div>
       </div>
-
-      {/* Mobile Search Bar */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden px-4 pb-4"
-          >
-            <div className="search-input">
-              <FiSearch className="w-4 h-4 text-stone-400" />
-              <input
-                type="text"
-                placeholder="Search memories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-                autoFocus
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 };

@@ -282,7 +282,7 @@ const Dashboard = () => {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-6"
+      className="space-y-4"
     >
       {/* Welcome Section */}
       <motion.div variants={item} className="premium-header p-3 md:p-5">
@@ -368,7 +368,7 @@ const Dashboard = () => {
         </div>
 
         {favoriteMemories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {favoriteMemories.slice(0, 5).map((memory) => (
               <MemoryCard
                 key={memory._id}
@@ -431,7 +431,7 @@ const Dashboard = () => {
         </div>
 
         {recentItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {recentItemsWithAlbumData
               .filter((item) => item.type === "album" || !item.isMilestone)
               .slice(0, 8)

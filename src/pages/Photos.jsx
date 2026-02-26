@@ -242,15 +242,17 @@ const Photos = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            {filteredPhotos.map((photo) => (
+            {filteredPhotos.map((photo, index) => (
               <MemoryCard
                 key={photo._id}
                 memory={photo}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleFavorite={toggleFavorite}
+                previewItems={filteredPhotos}
+                previewIndex={index}
               />
             ))}
           </motion.div>

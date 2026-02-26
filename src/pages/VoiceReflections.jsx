@@ -5,6 +5,8 @@ import {
   FiSquare,
   FiPlay,
   FiPause,
+  FiChevronLeft,
+  FiChevronRight,
   FiTrash2,
   FiSave,
   FiX,
@@ -205,11 +207,13 @@ const VoiceReflections = () => {
   const [audioBlob, setAudioBlob] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [playingId, setPlayingId] = useState(null);
+  const [playingRemainingSeconds, setPlayingRemainingSeconds] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
   const audioRef = useRef(null);
+  const previewAudioRef = useRef(null);
   const { canvasRef, stopVisualization } = useAudioVisualizer(
     audioBlob,
     isRecording,
@@ -359,17 +363,75 @@ const VoiceReflections = () => {
     }
   };
 
+  const playReflection = (reflection) => {
+    if (!audioRef.current || !reflection?.audioUrl) {
+      return;
+    }
+
+    audioRef.current.src = reflection.audioUrl;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+    setPlayingId(reflection.id);
+
+    if (reflection.duration) {
+      setPlayingRemainingSeconds(Math.max(0, Math.round(reflection.duration)));
+    } else {
+      setPlayingRemainingSeconds(null);
+    }
+  };
+
   const togglePlay = (reflection) => {
     if (playingId === reflection.id) {
       audioRef.current?.pause();
       setPlayingId(null);
+      setPlayingRemainingSeconds(null);
     } else {
-      if (audioRef.current) {
-        audioRef.current.src = reflection.audioUrl;
-        audioRef.current.play();
-        setPlayingId(reflection.id);
-      }
+      playReflection(reflection);
     }
+  };
+
+  const moveToAdjacentReflection = (currentId, direction) => {
+    if (!Array.isArray(reflections) || reflections.length === 0) {
+      return;
+    }
+
+    const currentIndex = reflections.findIndex((item) => item.id === currentId);
+    if (currentIndex < 0) {
+      return;
+    }
+
+    const nextIndex =
+      (currentIndex + direction + reflections.length) % reflections.length;
+    playReflection(reflections[nextIndex]);
+  };
+
+  const updateRemainingPlaybackTime = () => {
+    const player = audioRef.current;
+    if (!player) return;
+
+    const currentSeconds = player.currentTime;
+    const activeReflection = reflections.find((item) => item.id === playingId);
+    const fallbackDuration = Number(activeReflection?.duration || 0);
+
+    if (!Number.isFinite(currentSeconds)) {
+      return;
+    }
+
+    const durationSeconds = Number.isFinite(player.duration)
+      ? player.duration
+      : fallbackDuration;
+
+    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+      return;
+    }
+
+    const remaining = Math.max(0, Math.ceil(durationSeconds - currentSeconds));
+    setPlayingRemainingSeconds(remaining);
+  };
+
+  const handleCardPlaybackEnded = () => {
+    setPlayingId(null);
+    setPlayingRemainingSeconds(null);
   };
 
   if (loading) {
@@ -473,16 +535,16 @@ const VoiceReflections = () => {
                 Preview Your Recording
               </h3>
 
-              <audio ref={audioRef} src={audioUrl} className="hidden" />
+              <audio ref={previewAudioRef} src={audioUrl} className="hidden" />
 
               <div className="flex items-center justify-center gap-4 mb-6">
                 <button
                   onClick={() => {
-                    if (audioRef.current) {
-                      if (audioRef.current.paused) {
-                        audioRef.current.play();
+                    if (previewAudioRef.current) {
+                      if (previewAudioRef.current.paused) {
+                        previewAudioRef.current.play();
                       } else {
-                        audioRef.current.pause();
+                        previewAudioRef.current.pause();
                       }
                     }
                   }}
@@ -585,16 +647,42 @@ const VoiceReflections = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-stone-500">
                     <FiClock className="w-3.5 h-3.5" />
-                    {reflection.duration
-                      ? formatDuration(Math.round(reflection.duration))
-                      : "--:--"}
+                    {playingId === reflection.id
+                      ? `${formatDuration(playingRemainingSeconds ?? Math.round(reflection.duration || 0))} left`
+                      : reflection.duration
+                        ? formatDuration(Math.round(reflection.duration))
+                        : "--:--"}
                   </div>
-                  <button
-                    onClick={() => handleDelete(reflection.id)}
-                    className="p-2 text-stone-400 hover:text-red-500 transition-colors"
-                  >
-                    <FiDelete className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {playingId === reflection.id && reflections.length > 1 && (
+                      <>
+                        <button
+                          onClick={() =>
+                            moveToAdjacentReflection(reflection.id, -1)
+                          }
+                          className="p-2 text-stone-400 hover:text-amber-600 transition-colors"
+                          aria-label="Previous voice"
+                        >
+                          <FiChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            moveToAdjacentReflection(reflection.id, 1)
+                          }
+                          className="p-2 text-stone-400 hover:text-amber-600 transition-colors"
+                          aria-label="Next voice"
+                        >
+                          <FiChevronRight className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleDelete(reflection.id)}
+                      className="p-2 text-stone-400 hover:text-red-500 transition-colors"
+                    >
+                      <FiDelete className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -605,7 +693,9 @@ const VoiceReflections = () => {
       {/* Hidden audio element for playing reflections */}
       <audio
         ref={audioRef}
-        onEnded={() => setPlayingId(null)}
+        onLoadedMetadata={updateRemainingPlaybackTime}
+        onTimeUpdate={updateRemainingPlaybackTime}
+        onEnded={handleCardPlaybackEnded}
         className="hidden"
       />
     </div>

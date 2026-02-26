@@ -10,6 +10,8 @@ import {
   FiShare2,
   FiMic,
   FiPlay,
+  FiChevronLeft,
+  FiChevronRight,
   FiCopy,
   FiCheck,
 } from "react-icons/fi";
@@ -29,16 +31,22 @@ const MemoryCard = ({
   showActions = true,
   variant = "default", // 'default', 'compact', 'featured'
   aspectRatio,
+  previewItems,
+  previewIndex = 0,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showMenu, setShowMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(previewIndex);
 
-  const mainMedia = memory.media?.find((m) => m.type === "image") ||
-    memory.media?.find((m) => m.type === "video") ||
-    memory.media?.[0] || { type: "image" };
+  const getMainMediaFromMemory = (memoryItem) =>
+    memoryItem.media?.find((m) => m.type === "image") ||
+    memoryItem.media?.find((m) => m.type === "video") ||
+    memoryItem.media?.[0] || { type: "image" };
+
+  const mainMedia = getMainMediaFromMemory(memory);
 
   const mediaType = mainMedia.type || "image";
 
@@ -50,6 +58,24 @@ const MemoryCard = ({
     null;
 
   const contentLink = albumId ? `/albums/${albumId}` : `/memory/${memory._id}`;
+
+  const previewSource =
+    Array.isArray(previewItems) && previewItems.length > 0
+      ? previewItems
+      : [memory];
+
+  const activeMemory = previewSource[currentPreviewIndex] || memory;
+  const activeMainMedia = getMainMediaFromMemory(activeMemory);
+  const activeMediaType = activeMainMedia.type || "image";
+  const activeAlbumId =
+    activeMemory.album_id ||
+    activeMemory.albumId ||
+    activeMemory.album?.id ||
+    activeMemory.album?._id ||
+    null;
+  const activeContentLink = activeAlbumId
+    ? `/albums/${activeAlbumId}`
+    : `/memory/${activeMemory._id}`;
 
   // Get the base URL for share links
   const getBaseUrl = () => {
@@ -135,10 +161,23 @@ const MemoryCard = ({
       mediaType === "video" ||
       mediaType === "audio"
     ) {
+      setCurrentPreviewIndex(previewIndex);
       setShowPreview(true);
     } else {
       navigate(contentLink);
     }
+  };
+
+  const movePreview = (direction) => {
+    if (previewSource.length <= 1) {
+      return;
+    }
+
+    setCurrentPreviewIndex((prev) => {
+      const next =
+        (prev + direction + previewSource.length) % previewSource.length;
+      return next;
+    });
   };
 
   // Premium Grid UI
@@ -269,20 +308,45 @@ const MemoryCard = ({
                 className="w-full h-full flex items-center justify-center select-none relative group/preview"
                 onClick={(e) => e.stopPropagation()}
               >
-                {mediaType === "video" ? (
+                {previewSource.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        movePreview(-1);
+                      }}
+                      className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all z-[10000]"
+                      aria-label="Previous media"
+                    >
+                      <FiChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        movePreview(1);
+                      }}
+                      className="absolute right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all z-[10000]"
+                      aria-label="Next media"
+                    >
+                      <FiChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+
+                {activeMediaType === "video" ? (
                   <video
-                    src={mainMedia.url}
+                    src={activeMainMedia.url}
                     className="w-full h-full object-contain"
                     controls
                     autoPlay
                   />
-                ) : mediaType === "audio" ? (
+                ) : activeMediaType === "audio" ? (
                   <div className="bg-stone-900/60 backdrop-blur-2xl p-12 rounded-[3rem] border border-white/10 shadow-2xl flex flex-col items-center gap-8 min-w-[400px]">
                     <div className="w-24 h-24 bg-amber-500 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(245,158,11,0.3)]">
                       <FiMic className="w-10 h-10 text-stone-900" />
                     </div>
                     <audio
-                      src={mainMedia.url}
+                      src={activeMainMedia.url}
                       controls
                       autoPlay
                       className="w-full"
@@ -290,8 +354,8 @@ const MemoryCard = ({
                   </div>
                 ) : (
                   <img
-                    src={mainMedia.url}
-                    alt={memory.title}
+                    src={activeMainMedia.url}
+                    alt={activeMemory.title}
                     className="w-full h-full object-contain"
                   />
                 )}
@@ -300,14 +364,14 @@ const MemoryCard = ({
                 <div className="absolute inset-x-0 bottom-0 p-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-500 pointer-events-none">
                   <div className="max-w-4xl mx-auto text-center pointer-events-auto">
                     <h2 className="text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl">
-                      {memory.title}
+                      {activeMemory.title}
                     </h2>
                     <p className="text-white/70 text-xl font-medium line-clamp-2 mb-8 drop-shadow-lg">
-                      {memory.description || "Every pixel tells a story."}
+                      {activeMemory.description || "Every pixel tells a story."}
                     </p>
                     <div className="flex items-center justify-center gap-5">
                       <button
-                        onClick={() => navigate(contentLink)}
+                        onClick={() => navigate(activeContentLink)}
                         className="px-10 py-4 bg-amber-500 text-stone-900 rounded-full font-black text-sm uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(245,158,11,0.4)]"
                       >
                         Explore Diary
