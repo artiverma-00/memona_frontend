@@ -8,13 +8,7 @@ import SearchBar from "../components/shared/SearchBar";
 import Loader from "../components/shared/Loader";
 
 const MapView = () => {
-  const {
-    memories,
-    loading,
-    fetchMemories,
-    fetchMapLocations,
-    toggleFavorite,
-  } = useMemory();
+  const { fetchMapLocations, toggleFavorite } = useMemory();
   const [mapMemories, setMapMemories] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,10 +51,8 @@ const MapView = () => {
     setSelectedMemory(memory);
   };
 
-  // Check loading state - use mapLoading for map-specific data
-  const isLoading = loading || mapLoading;
-
-  if (isLoading) {
+  // Check loading state for map-specific data
+  if (mapLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader size="lg" text="Loading map..." />

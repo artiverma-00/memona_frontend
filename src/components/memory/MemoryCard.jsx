@@ -10,6 +10,8 @@ import {
   FiShare2,
   FiMic,
   FiPlay,
+  FiCopy,
+  FiCheck,
 } from "react-icons/fi";
 import {
   PhotoStoryCard,
@@ -32,6 +34,7 @@ const MemoryCard = ({
   const location = useLocation();
   const [showMenu, setShowMenu] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const mainMedia = memory.media?.find((m) => m.type === "image") ||
     memory.media?.find((m) => m.type === "video") ||
@@ -47,6 +50,76 @@ const MemoryCard = ({
     null;
 
   const contentLink = albumId ? `/albums/${albumId}` : `/memory/${memory._id}`;
+
+  // Get the base URL for share links
+  const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.origin;
+    }
+    return "";
+  };
+
+  // Handle share functionality with Web Share API or clipboard fallback
+  const handleShare = async () => {
+    const shareData = {
+      title: memory.title || "Memory",
+      text: memory.description || "Check out this memory!",
+      url: `${getBaseUrl()}${contentLink}`,
+    };
+
+    // Try native Web Share API first (works on mobile)
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        // User cancelled or error - fall through to clipboard
+        if (err.name !== "AbortError") {
+          console.log("Share cancelled or failed:", err);
+        }
+      }
+    }
+
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      // Show alert as last resort
+      prompt("Copy this link to share:", shareData.url);
+    }
+  };
+
+  // Handle download functionality
+  const handleDownload = async (e) => {
+    e.stopPropagation();
+
+    if (!mainMedia.url) return;
+
+    try {
+      // If it's a Cloudinary URL, use our server endpoint
+      if (mainMedia.url.includes("cloudinary.com")) {
+        const encodedUrl = encodeURIComponent(mainMedia.url);
+        const filename = memory.title || "memory";
+        const downloadUrl = `/api/exports/download?url=${encodedUrl}&filename=${encodeURIComponent(filename)}`;
+        window.open(downloadUrl, "_blank");
+      } else {
+        // For non-Cloudinary URLs, try direct download
+        const link = document.createElement("a");
+        link.href = mainMedia.url;
+        link.download = memory.title || "memory";
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+    setShowMenu(false);
+  };
 
   const handleAction = (e, callback) => {
     e.preventDefault();
@@ -135,21 +208,22 @@ const MemoryCard = ({
                       <FiEdit2 className="w-4 h-4" /> Edit Narrative
                     </button>
                     <button
-                      onClick={(e) => handleAction(e, () => onShare?.(memory))}
+                      onClick={(e) => handleAction(e, () => handleShare())}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
                     >
-                      <FiShare2 className="w-4 h-4" /> Share Moment
+                      {copied ? (
+                        <>
+                          <FiCheck className="w-4 h-4" /> Link Copied!
+                        </>
+                      ) : (
+                        <>
+                          <FiShare2 className="w-4 h-4" /> Share Moment
+                        </>
+                      )}
                     </button>
                     {mainMedia.url && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const link = document.createElement("a");
-                          link.href = mainMedia.url;
-                          link.download = memory.title || "memory";
-                          link.click();
-                          setShowMenu(false);
-                        }}
+                        onClick={handleDownload}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
                       >
                         <FiDownload className="w-4 h-4" /> Save File

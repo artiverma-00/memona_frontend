@@ -1,16 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FiMapPin, FiNavigation, FiX } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import { FiMapPin, FiX, FiCalendar, FiNavigation } from "react-icons/fi";
+
+// Fix for marker icons in Vite/React-Leaflet
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+// Component to handle map center changes
+function MapCenterHandler({ center, zoom }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (center) {
+      map.setView([center.lat, center.lng], zoom, { animate: true });
+    }
+  }, [center, zoom, map]);
+
+  return null;
+}
 
 const MemoryMap = ({
   memories = [],
   onMarkerClick,
-  center = { lat: 40.7128, lng: -74.006 },
-  zoom = 4,
+  center = { lat: 20.5937, lng: 78.9629 }, // Default: India center
+  zoom = 5,
   height = "400px",
 }) => {
   const [selectedMemory, setSelectedMemory] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // Normalize memories to handle different data formats from various API endpoints
   // Server /memories/map returns: id, title, created_at, location_lat, location_lng, media_thumbnail
@@ -33,6 +62,7 @@ const MemoryMap = ({
       media:
         m.media ||
         (m.media_thumbnail ? [{ type: "image", url: m.media_thumbnail }] : []),
+      description: m.description || "",
     }));
   };
 
@@ -45,12 +75,22 @@ const MemoryMap = ({
       m.location?.coordinates?.lng != null,
   );
 
+  // Calculate center based on memories if no center provided
+  const mapCenter =
+    memoriesWithLocation.length > 0
+      ? {
+          lat: memoriesWithLocation[0].location.coordinates.lat,
+          lng: memoriesWithLocation[0].location.coordinates.lng,
+        }
+      : center;
+
   const handleMarkerClick = (memory) => {
     setSelectedMemory(memory);
     onMarkerClick?.(memory);
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -59,142 +99,152 @@ const MemoryMap = ({
     });
   };
 
+  // Handle map ready event
+  const handleMapReady = () => {
+    setMapReady(true);
+  };
+
   return (
     <div
       className="relative rounded-2xl overflow-hidden bg-stone-100"
       style={{ height }}
     >
-      {/* Map Placeholder - In production, integrate with a map provider */}
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-stone-200">
-        {/* Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, currentColor 1px, transparent 1px),
-              linear-gradient(to bottom, currentColor 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px",
-          }}
+      {/* Real Leaflet Map */}
+      <MapContainer
+        center={[mapCenter.lat, mapCenter.lng]}
+        zoom={zoom}
+        style={{ height: "100%", width: "100%" }}
+        scrollWheelZoom={true}
+        whenReady={handleMapReady}
+      >
+        {/* Carto Light - Premium, reliable tile layer */}
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Decorative Elements - Gold Orbs */}
-        <div className="absolute top-10 left-10 w-20 h-20 bg-amber-400/10 rounded-full blur-xl" />
-        <div className="absolute bottom-10 right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-xl" />
-      </div>
+        {/* Map center handler */}
+        <MapCenterHandler center={mapCenter} zoom={zoom} />
 
-      {/* Map Markers */}
-      <div className="absolute inset-0">
-        {memoriesWithLocation.map((memory, index) => {
-          // Calculate position based on coordinates (simplified)
-          const latRange = 20;
-          const lngRange = 40;
-          const defaultCenter = { lat: 40.7128, lng: -74.006 };
+        {/* Markers for each memory with location */}
+        {memoriesWithLocation.map((memory) => (
+          <Marker
+            key={memory._id}
+            position={[
+              memory.location.coordinates.lat,
+              memory.location.coordinates.lng,
+            ]}
+            eventHandlers={{
+              click: () => handleMarkerClick(memory),
+            }}
+          >
+            <Popup>
+              <div className="min-w-[200px]">
+                {memory.media?.[0]?.type === "image" && (
+                  <img
+                    src={memory.media[0].url}
+                    alt={memory.title}
+                    className="w-full h-24 object-cover rounded-t-md mb-2"
+                  />
+                )}
+                <h3 className="font-semibold text-stone-900 text-sm mb-1">
+                  {memory.title}
+                </h3>
+                <p className="text-xs text-stone-500 mb-1">
+                  {formatDate(memory.date)}
+                </p>
+                {memory.location?.name && (
+                  <p className="text-xs text-stone-600 flex items-center gap-1 mb-2">
+                    <FiMapPin className="w-3 h-3" />
+                    {memory.location.name}
+                  </p>
+                )}
+                <Link
+                  to={`/memories/${memory._id}`}
+                  className="text-xs font-medium text-amber-600 hover:underline"
+                >
+                  View Memory →
+                </Link>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
 
-          const x =
-            50 +
-            ((memory.location.coordinates.lng - defaultCenter.lng) / lngRange) *
-              50;
-          const y =
-            50 -
-            ((memory.location.coordinates.lat - defaultCenter.lat) / latRange) *
-              50;
-
-          return (
-            <motion.button
-              key={memory._id}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => handleMarkerClick(memory)}
-              className={`
-                absolute transform -translate-x-1/2 -translate-y-1/2
-                w-10 h-10 rounded-full flex items-center justify-center
-                transition-all duration-200 hover:scale-110 z-10
-                ${
-                  selectedMemory?._id === memory._id
-                    ? "bg-amber-500 ring-4 ring-amber-300"
-                    : "bg-white shadow-lg hover:bg-amber-50"
-                }
-              `}
-              style={{
-                left: `${Math.min(90, Math.max(10, x))}%`,
-                top: `${Math.min(90, Math.max(10, y))}%`,
-              }}
+      {/* Custom Overlay - Selected Memory Card */}
+      <AnimatePresence>
+        {selectedMemory && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="absolute bottom-4 right-4 z-[1000] w-72 bg-white rounded-xl shadow-2xl overflow-hidden"
+          >
+            <button
+              onClick={() => setSelectedMemory(null)}
+              className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 hover:bg-stone-100 transition-colors z-10 shadow-sm"
             >
-              <FiMapPin
-                className={`w-5 h-5 ${selectedMemory?._id === memory._id ? "text-white" : "text-amber-600"}`}
+              <FiX className="w-4 h-4 text-stone-600" />
+            </button>
+
+            {selectedMemory.media?.[0]?.type === "image" && (
+              <img
+                src={selectedMemory.media[0].url}
+                alt={selectedMemory.title}
+                className="w-full h-32 object-cover"
               />
-            </motion.button>
-          );
-        })}
-      </div>
+            )}
+
+            <div className="p-3">
+              <h4 className="font-semibold text-stone-900 mb-1 line-clamp-1">
+                {selectedMemory.title}
+              </h4>
+              <p className="text-xs text-stone-500 mb-2 flex items-center gap-1">
+                <FiCalendar className="w-3 h-3" />
+                {formatDate(selectedMemory.date)}
+              </p>
+              {selectedMemory.location?.name && (
+                <p className="text-xs text-stone-600 flex items-center gap-1 mb-3">
+                  <FiMapPin className="w-3 h-3" />
+                  {selectedMemory.location.name}
+                </p>
+              )}
+              <Link
+                to={`/memories/${selectedMemory._id}`}
+                className="text-xs font-medium text-amber-600 hover:underline"
+              >
+                View Memory →
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-xs text-stone-600">
+      <div className="absolute bottom-4 left-4 z-[1000] px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-xs text-stone-600 shadow-sm">
         {memoriesWithLocation.length}{" "}
         {memoriesWithLocation.length === 1 ? "location" : "locations"}
       </div>
 
-      {/* Map Controls */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
-        <button className="p-2 bg-white rounded-lg shadow-lg hover:bg-stone-100 transition-colors">
-          <FiNavigation className="w-4 h-4 text-stone-600" />
-        </button>
+      {/* Map Controls Info */}
+      <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <div className="px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-xs text-stone-600 shadow-sm flex items-center gap-2">
+          <FiNavigation className="w-3 h-3" />
+          Scroll to zoom
+        </div>
       </div>
 
-      {/* Selected Memory Card */}
-      {selectedMemory && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="absolute bottom-4 right-4 w-72 bg-white rounded-xl shadow-xl overflow-hidden"
-        >
-          <button
-            onClick={() => setSelectedMemory(null)}
-            className="absolute top-2 right-2 p-1 rounded-full hover:bg-stone-100 transition-colors z-10"
-          >
-            <FiX className="w-4 h-4 text-stone-500" />
-          </button>
-
-          {selectedMemory.media?.[0]?.type === "image" && (
-            <img
-              src={selectedMemory.media[0].url}
-              alt={selectedMemory.title}
-              className="w-full h-32 object-cover"
-            />
-          )}
-
-          <div className="p-3">
-            <h4 className="font-semibold text-stone-900 mb-1 line-clamp-1">
-              {selectedMemory.title}
-            </h4>
-            <p className="text-xs text-stone-500 mb-2">
-              {formatDate(selectedMemory.date)}
-            </p>
-            {selectedMemory.location?.name && (
-              <p className="text-xs text-stone-600 flex items-center gap-1 mb-3">
-                <FiMapPin className="w-3 h-3" />
-                {selectedMemory.location.name}
-              </p>
-            )}
-            <Link
-              to="/photos"
-              className="text-xs font-medium text-amber-600 hover:underline"
-            >
-              View Memory →
-            </Link>
+      {/* Empty State Overlay */}
+      {memoriesWithLocation.length === 0 && mapReady && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-50/90 z-[1000]">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+            <FiMapPin className="w-8 h-8 text-amber-500" />
           </div>
-        </motion.div>
-      )}
-
-      {/* Empty State */}
-      {memoriesWithLocation.length === 0 && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <FiMapPin className="w-12 h-12 text-stone-300 mb-3" />
-          <p className="text-stone-500 text-sm">
-            No memories with locations yet
+          <h3 className="text-lg font-medium text-stone-900 mb-1">
+            No memories with locations
+          </h3>
+          <p className="text-sm text-stone-500 max-w-xs text-center">
+            Add locations to your memories to see them on the map.
           </p>
         </div>
       )}
