@@ -155,23 +155,9 @@ https://memona-backend.onrender.com
 
 ---
 
-## 🔑 Login Credentials (For Demo)
 
-### User Account
-
-Email:
-`[ Add Demo User Email ]`
-
-Password:
-`[ Add Demo Password ]`
-
-### Admin Account (if applicable)
-
-Email:
-`[ Add Admin Email ]`
-
-Password:
-`[ Add Admin Password ]`
+### Admin Account (demo not real data)
+admin key : Memona_Admin
 
 ---
 
@@ -202,13 +188,6 @@ Password:
 
 <img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/5a45f3e7-ae33-4554-ace7-87c929c979a3" />
 
-
----
-
-## 🎥 Video Walkthrough
-
-📺 Full Project Demo Video:
-`[ Add YouTube / Drive Link Here ]`
 
 ---
 
