@@ -3,6 +3,7 @@ import { FiPlayCircle } from "react-icons/fi";
 
 export default function VideoMemoriesSection() {
   const sectionRef = useRef(null);
+  const heroVideoSrc = `${import.meta.env.BASE_URL}video/hero.mp4`;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -43,7 +44,7 @@ export default function VideoMemoriesSection() {
         <div className="group relative overflow-hidden rounded-3xl border border-stone-700/70 bg-black">
           <video
             className="h-72 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            src="/video/hero.mp4"
+            src={heroVideoSrc}
             autoPlay
             muted
             loop

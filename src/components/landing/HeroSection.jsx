@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { FiArrowDown } from "react-icons/fi";
 
 export default function HeroSection() {
+  const heroVideoSrc = `${import.meta.env.BASE_URL}video/hero.mp4`;
+
   // Floating images configuration
   const floatingImages = [
     // Left side images
@@ -27,7 +29,7 @@ export default function HeroSection() {
       <div className="absolute inset-0 z-0">
         <video
           className="h-full w-full object-cover"
-          src="/video/hero.mp4"
+          src={heroVideoSrc}
           autoPlay
           muted
           loop

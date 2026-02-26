@@ -7,6 +7,7 @@ export default function ReminisceSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [isPlaying, setIsPlaying] = useState(false);
+  const heroVideoSrc = `${import.meta.env.BASE_URL}video/hero.mp4`;
 
   return (
     <section
@@ -52,7 +53,7 @@ export default function ReminisceSection() {
             <div className="group relative overflow-hidden rounded-3xl shadow-2xl">
               <video
                 className="h-full w-full object-cover aspect-video"
-                src="/video/hero.mp4"
+                src={heroVideoSrc}
                 autoPlay
                 muted
                 loop

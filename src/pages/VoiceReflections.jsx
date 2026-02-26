@@ -160,9 +160,11 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
   const stopVisualization = useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
     }
     if (audioContextRef.current) {
       audioContextRef.current.close();
+      audioContextRef.current = null;
     }
     if (sourceRef.current) {
       try {
@@ -170,14 +172,21 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
       } catch (e) {
         // Ignore if already stopped
       }
+      sourceRef.current = null;
+    }
+    // Clear the canvas when stopping
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }, []);
 
+  // Handle visualization state changes
   useEffect(() => {
     if (isRecording) {
+      // When recording, show live visualization
       startRecordingVisualization();
-    } else {
-      stopVisualization();
     }
 
     return () => {
@@ -185,13 +194,23 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
     };
   }, [isRecording, startRecordingVisualization, stopVisualization]);
 
+  // Handle audio blob visualization (for preview after recording)
   useEffect(() => {
+    // Only show recorded audio visualization when NOT recording and we have an audioBlob
     if (audioBlob && !isRecording) {
-      startVisualization();
-    }
-    return () => {
+      // Small delay to ensure clean transition from recording state
+      const timeoutId = setTimeout(() => {
+        startVisualization();
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        stopVisualization();
+      };
+    } else if (!audioBlob && !isRecording) {
+      // No recording and no audio - clear canvas
       stopVisualization();
-    };
+    }
   }, [audioBlob, isRecording, startVisualization, stopVisualization]);
 
   return { canvasRef, startVisualization, stopVisualization };
