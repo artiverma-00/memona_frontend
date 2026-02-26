@@ -179,31 +179,29 @@ Password:
 
 ### 🔹 Dashboard
 
-![Dashboard Screenshot](ADD_SCREENSHOT_LINK_HERE)
+<img width="1920" height="2097" alt="image" src="https://github.com/user-attachments/assets/9fff6ada-1255-483c-b9f3-2e996dbbcfa1" />
+
 
 ---
 
 ### 🔹 Create Memory Page
 
-![Create Memory Screenshot](ADD_SCREENSHOT_LINK_HERE)
+<img width="1920" height="962" alt="image" src="https://github.com/user-attachments/assets/8a5574e0-159b-423b-be2a-574a2b4b05fd" />
+
 
 ---
 
 ### 🔹 Milestones Page
 
-![Milestones Screenshot](ADD_SCREENSHOT_LINK_HERE)
+<img width="1920" height="952" alt="image" src="https://github.com/user-attachments/assets/4b6a196a-b24f-4cfd-b49c-675a1fe2948e" />
 
----
-
-### 🔹 Shared Memories Page
-
-![Shared Screenshot](ADD_SCREENSHOT_LINK_HERE)
 
 ---
 
 ### 🔹 Voice Reflection UI
 
-![Voice Screenshot](ADD_SCREENSHOT_LINK_HERE)
+<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/5a45f3e7-ae33-4554-ace7-87c929c979a3" />
+
 
 ---
 
