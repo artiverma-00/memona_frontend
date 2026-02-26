@@ -73,11 +73,9 @@ const Register = () => {
     } else {
       toast.success("Account created successfully!");
     }
-    setTimeout(() => {
-      navigate(result.user.role === "admin" ? "/admin" : "/dashboard", {
-        replace: true,
-      });
-    }, 1500);
+    navigate(result.user.role === "admin" ? "/admin" : "/dashboard", {
+      replace: true,
+    });
   };
 
   const handleBackClick = () => {

@@ -65,11 +65,9 @@ const Login = () => {
     } else {
       toast.success("Successfully logged in!");
     }
-    setTimeout(() => {
-      navigate(result.user.role === "admin" ? "/admin" : "/dashboard", {
-        replace: true,
-      });
-    }, 1500);
+    navigate(result.user.role === "admin" ? "/admin" : "/dashboard", {
+      replace: true,
+    });
   };
 
   return (

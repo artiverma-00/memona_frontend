@@ -737,9 +737,12 @@ export const MemoryProvider = ({ children }) => {
     }
   }, []);
 
-  const fetchSharedMemories = useCallback(async () => {
+  const fetchSharedMemories = useCallback(async (options = {}) => {
+    const { silent = false } = options;
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       const response = await memoryService.getAll({ shared: true });
       if (response.data?.success) {
@@ -759,7 +762,9 @@ export const MemoryProvider = ({ children }) => {
       );
       setSharedMemories([]);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, []);
 

@@ -40,6 +40,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authActionLoading, setAuthActionLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -76,12 +77,12 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (name, email, password, role, adminSignupKey = "") => {
     setError("");
-    setLoading(true);
+    setAuthActionLoading(true);
     const normalizedRole = normalizeRole(role);
 
     const allowedRoles = ["admin", "user"];
     if (!allowedRoles.includes(normalizedRole)) {
-      setLoading(false);
+      setAuthActionLoading(false);
       setError("Please choose a valid role.");
       return { success: false, error: "Please choose a valid role." };
     }
@@ -114,13 +115,13 @@ export const AuthProvider = ({ children }) => {
       setError(message);
       return { success: false, error: message };
     } finally {
-      setLoading(false);
+      setAuthActionLoading(false);
     }
   };
 
   const login = async (email, password) => {
     setError("");
-    setLoading(true);
+    setAuthActionLoading(true);
 
     try {
       const response = await authAPI.login({ email, password });
@@ -143,7 +144,7 @@ export const AuthProvider = ({ children }) => {
       setError(message);
       return { success: false, error: message };
     } finally {
-      setLoading(false);
+      setAuthActionLoading(false);
     }
   };
 
@@ -193,7 +194,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    isLoading: loading,
+    isLoading: authActionLoading,
     error,
     login,
     register,

@@ -56,7 +56,7 @@ const Dashboard = () => {
     }
 
     const intervalId = setInterval(() => {
-      fetchSharedMemories();
+      fetchSharedMemories({ silent: true });
     }, 30000);
 
     return () => clearInterval(intervalId);

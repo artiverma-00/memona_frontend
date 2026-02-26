@@ -14,40 +14,52 @@ import { formatDate } from "../../utils/formatDate";
 const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const visualMemories = memories.filter((memory) => {
+    if (memory?.media_type === "image" || memory?.media_type === "video") {
+      return true;
+    }
+
+    return memory?.media?.some(
+      (item) => item?.type === "image" || item?.type === "video",
+    );
+  });
+
   // Reset to random memory when opened
   useEffect(() => {
-    if (isOpen && memories.length > 0) {
-      const randomIndex = Math.floor(Math.random() * memories.length);
+    if (isOpen && visualMemories.length > 0) {
+      const randomIndex = Math.floor(Math.random() * visualMemories.length);
       setCurrentIndex(randomIndex);
     }
-  }, [isOpen, memories.length]);
+  }, [isOpen, visualMemories.length]);
 
   useEffect(() => {
-    if (currentIndex >= memories.length && memories.length > 0) {
+    if (currentIndex >= visualMemories.length && visualMemories.length > 0) {
       setCurrentIndex(0);
     }
-  }, [currentIndex, memories.length]);
+  }, [currentIndex, visualMemories.length]);
 
   useEffect(() => {
-    if (!isOpen || memories.length <= 1) return;
+    if (!isOpen || visualMemories.length <= 1) return;
 
     const autoSlideInterval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % memories.length);
+      setCurrentIndex((prev) => (prev + 1) % visualMemories.length);
     }, 5000);
 
     return () => clearInterval(autoSlideInterval);
-  }, [isOpen, memories.length]);
+  }, [isOpen, visualMemories.length]);
 
-  const currentMemory = memories[currentIndex];
+  const currentMemory = visualMemories[currentIndex];
 
   const handleNext = () => {
-    if (!memories.length) return;
-    setCurrentIndex((prev) => (prev + 1) % memories.length);
+    if (!visualMemories.length) return;
+    setCurrentIndex((prev) => (prev + 1) % visualMemories.length);
   };
 
   const handlePrev = () => {
-    if (!memories.length) return;
-    setCurrentIndex((prev) => (prev - (1).length) % memories.length);
+    if (!visualMemories.length) return;
+    setCurrentIndex(
+      (prev) => (prev - 1 + visualMemories.length) % visualMemories.length,
+    );
   };
 
   const handleClose = () => {
@@ -89,7 +101,7 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
               No memories yet
             </h3>
             <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-              Create your first memory to start reminiscing.
+              Add a photo or video memory to start reminiscing.
             </p>
             <button
               onClick={handleClose}
@@ -103,7 +115,9 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
     );
   }
 
-  const mainImage = currentMemory.media?.find((m) => m.type === "image");
+  const mainVisual =
+    currentMemory.media?.find((m) => m.type === "image") ||
+    currentMemory.media?.find((m) => m.type === "video");
 
   return (
     <AnimatePresence>
@@ -123,7 +137,7 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-2xl bg-[var(--color-surface-bg)] rounded-3xl overflow-hidden shadow-2xl"
+          className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-[var(--color-surface-bg)] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
@@ -136,11 +150,20 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
 
           {/* Hero Image */}
           <div className="relative h-72 sm:h-96 overflow-hidden">
-            {mainImage ? (
+            {mainVisual?.type === "image" ? (
               <img
-                src={mainImage.url}
+                src={mainVisual.url}
                 alt={currentMemory.title}
                 className="w-full h-full object-cover"
+              />
+            ) : mainVisual?.type === "video" ? (
+              <video
+                src={mainVisual.url}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
               />
             ) : (
               <div className="w-full h-full bg-linear-to-br from-amber-300 to-amber-500 flex items-center justify-center">
@@ -188,13 +211,6 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
 
           {/* Content */}
           <div className="p-6">
-            {/* Description */}
-            {currentMemory.description && (
-              <p className="text-[var(--color-text-primary)] mb-6 leading-relaxed">
-                {currentMemory.description}
-              </p>
-            )}
-
             {/* Tags */}
             {currentMemory.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
@@ -232,7 +248,7 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
             )}
 
             {/* Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t border-[var(--color-surface-border)]">
+            <div className="flex items-center justify-between border-t border-[var(--color-surface-border)] pt-4">
               <button
                 onClick={handlePrev}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-page-bg)] transition-colors"
@@ -242,7 +258,7 @@ const ReminisceModal = ({ isOpen, onClose, memories = [] }) => {
               </button>
 
               <div className="flex items-center gap-2">
-                {memories.map((_, index) => (
+                {visualMemories.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}

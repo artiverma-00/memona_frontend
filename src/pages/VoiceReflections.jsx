@@ -72,6 +72,46 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
     draw();
   }, []);
 
+  const startIdleVisualization = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const bars = 42;
+    const gap = 4;
+    const barWidth = Math.max(2, (width - gap * (bars - 1)) / bars);
+
+    const drawIdle = (time = 0) => {
+      animationRef.current = requestAnimationFrame(drawIdle);
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 0, width, height);
+
+      for (let i = 0; i < bars; i++) {
+        const phase = time * 0.002 + i * 0.35;
+        const amplitude = (Math.sin(phase) + Math.sin(phase * 0.6)) * 0.5;
+        const normalized = (amplitude + 1) / 2;
+        const barHeight = 8 + normalized * (height * 0.42);
+        const x = i * (barWidth + gap);
+        const y = (height - barHeight) / 2;
+
+        const gradient = ctx.createLinearGradient(0, y + barHeight, 0, y);
+        gradient.addColorStop(0, "rgba(245, 158, 11, 0.45)");
+        gradient.addColorStop(0.5, "rgba(251, 191, 36, 0.5)");
+        gradient.addColorStop(1, "rgba(252, 211, 77, 0.55)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barWidth, barHeight);
+      }
+    };
+
+    drawIdle();
+  }, []);
+
   const startVisualization = useCallback(async () => {
     if (!audioBlob) return;
 
@@ -208,10 +248,20 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
         stopVisualization();
       };
     } else if (!audioBlob && !isRecording) {
-      // No recording and no audio - clear canvas
-      stopVisualization();
+      // No recording and no audio - show subtle idle animation instead of blank canvas
+      startIdleVisualization();
+
+      return () => {
+        stopVisualization();
+      };
     }
-  }, [audioBlob, isRecording, startVisualization, stopVisualization]);
+  }, [
+    audioBlob,
+    isRecording,
+    startVisualization,
+    stopVisualization,
+    startIdleVisualization,
+  ]);
 
   return { canvasRef, startVisualization, stopVisualization };
 };
@@ -225,6 +275,7 @@ const VoiceReflections = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [playingId, setPlayingId] = useState(null);
   const [playingRemainingSeconds, setPlayingRemainingSeconds] = useState(null);
 
@@ -333,6 +384,12 @@ const VoiceReflections = () => {
   };
 
   const resetRecording = () => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      previewAudioRef.current.currentTime = 0;
+    }
+    setIsPreviewPlaying(false);
+
     if (audioUrl) {
       URL.revokeObjectURL(audioUrl);
     }
@@ -453,6 +510,26 @@ const VoiceReflections = () => {
     setPlayingRemainingSeconds(null);
   };
 
+  const togglePreviewPlayback = async () => {
+    const player = previewAudioRef.current;
+    if (!player) {
+      return;
+    }
+
+    try {
+      if (player.paused) {
+        await player.play();
+        setIsPreviewPlaying(true);
+      } else {
+        player.pause();
+        setIsPreviewPlaying(false);
+      }
+    } catch (error) {
+      console.error("Error toggling preview playback:", error);
+      toast.error("Unable to play preview audio");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -554,22 +631,25 @@ const VoiceReflections = () => {
                 Preview Your Recording
               </h3>
 
-              <audio ref={previewAudioRef} src={audioUrl} className="hidden" />
+              <audio
+                ref={previewAudioRef}
+                src={audioUrl}
+                onEnded={() => setIsPreviewPlaying(false)}
+                onPause={() => setIsPreviewPlaying(false)}
+                onPlay={() => setIsPreviewPlaying(true)}
+                className="hidden"
+              />
 
               <div className="flex items-center justify-center gap-4 mb-6">
                 <button
-                  onClick={() => {
-                    if (previewAudioRef.current) {
-                      if (previewAudioRef.current.paused) {
-                        previewAudioRef.current.play();
-                      } else {
-                        previewAudioRef.current.pause();
-                      }
-                    }
-                  }}
+                  onClick={togglePreviewPlayback}
                   className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 hover:bg-amber-200 transition-colors"
                 >
-                  <FiPlay className="w-6 h-6 ml-1" />
+                  {isPreviewPlaying ? (
+                    <FiPause className="w-6 h-6" />
+                  ) : (
+                    <FiPlay className="w-6 h-6 ml-1" />
+                  )}
                 </button>
                 <div className="flex-1 max-w-md">
                   <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
