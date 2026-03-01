@@ -340,11 +340,7 @@ const MemoryForm = ({
                         <span className="text-[10px] font-medium text-center line-clamp-2 break-all">
                           {item.file?.name || "Audio file"}
                         </span>
-                        <audio
-                          src={item.url}
-                          controls
-                          className="w-full h-7"
-                        />
+                        <audio src={item.url} controls className="w-full h-7" />
                       </div>
                     ) : (
                       <video
