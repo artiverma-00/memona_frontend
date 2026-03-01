@@ -173,6 +173,19 @@ const MemoryCard = ({
     setShowMenu(false);
   };
 
+  const handleEditNarrative = () => {
+    if (typeof onEdit === "function") {
+      onEdit(memory);
+      return;
+    }
+
+    navigate("/timeline", {
+      state: {
+        editMemory: memory,
+      },
+    });
+  };
+
   const handleCardClick = (e) => {
     // If it's a photo, video, or audio, show preview instead of navigating
     if (
@@ -260,10 +273,10 @@ const MemoryCard = ({
                     className="absolute right-0 top-12 w-48 bg-white rounded-2xl shadow-2xl border border-stone-100 overflow-hidden z-[60] py-1"
                   >
                     <button
-                      onClick={(e) => handleAction(e, () => onEdit?.(memory))}
+                      onClick={(e) => handleAction(e, handleEditNarrative)}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
                     >
-                      <FiEdit2 className="w-4 h-4" /> Edit Narrative
+                      <FiEdit2 className="w-4 h-4" /> Edit
                     </button>
                     <button
                       onClick={(e) => handleAction(e, () => handleShare())}

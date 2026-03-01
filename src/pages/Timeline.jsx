@@ -92,6 +92,13 @@ const Timeline = () => {
   const memoriesWithAlbum = memories.map(mapMemoryWithAlbumId);
 
   useEffect(() => {
+    if (location.state?.editMemory) {
+      setEditingMemory(location.state.editMemory);
+      setShowMemoryForm(true);
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
     if (location.state?.openMemoryForm) {
       setEditingMemory(null);
       setShowMemoryForm(true);
