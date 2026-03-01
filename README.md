@@ -144,7 +144,7 @@ http://localhost:5173
 ## 🚀 Deployment Link
 
 🔗 Live App:
-`[ Add Deployment Link Here ]`
+https://memona-frontend.vercel.app/
 
 ---
 
