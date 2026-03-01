@@ -254,14 +254,19 @@ const Register = () => {
                     required
                   />
                 </div>
+                <p className="mt-2 text-xs text-amber-700">
+                  admin key : Memona_Admin
+                </p>
                 {fieldErrors.admin_signup_key ? (
                   <p className="mt-2 text-xs text-red-600">
                     {fieldErrors.admin_signup_key}
                   </p>
+                  
                 ) : null}
               </label>
+              
             ) : null}
-
+           
             <button
               type="submit"
               disabled={isLoading}
