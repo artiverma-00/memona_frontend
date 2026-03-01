@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   FiX,
   FiImage,
+  FiMic,
   FiMapPin,
   FiCalendar,
   FiTag,
@@ -333,6 +334,18 @@ const MemoryForm = ({
                         alt=""
                         className="w-full h-full object-cover"
                       />
+                    ) : item.type === "audio" ? (
+                      <div className="w-full h-full bg-indigo-50 text-indigo-700 flex flex-col items-center justify-center gap-2 p-2">
+                        <FiMic className="w-5 h-5" />
+                        <span className="text-[10px] font-medium text-center line-clamp-2 break-all">
+                          {item.file?.name || "Audio file"}
+                        </span>
+                        <audio
+                          src={item.url}
+                          controls
+                          className="w-full h-7"
+                        />
+                      </div>
                     ) : (
                       <video
                         src={item.url}
