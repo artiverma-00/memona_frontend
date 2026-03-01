@@ -234,19 +234,12 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
     };
   }, [isRecording, startRecordingVisualization, stopVisualization]);
 
-  // Handle audio blob visualization (for preview after recording)
+  // Handle visualization when recording is not active
   useEffect(() => {
-    // Only show recorded audio visualization when NOT recording and we have an audioBlob
     if (audioBlob && !isRecording) {
-      // Small delay to ensure clean transition from recording state
-      const timeoutId = setTimeout(() => {
-        startVisualization();
-      }, 100);
-
-      return () => {
-        clearTimeout(timeoutId);
-        stopVisualization();
-      };
+      // Keep preview area clean: no second canvas animation after recording
+      stopVisualization();
+      return;
     } else if (!audioBlob && !isRecording) {
       // No recording and no audio - show subtle idle animation instead of blank canvas
       startIdleVisualization();
@@ -258,7 +251,6 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
   }, [
     audioBlob,
     isRecording,
-    startVisualization,
     stopVisualization,
     startIdleVisualization,
   ]);
@@ -591,11 +583,7 @@ const VoiceReflections = () => {
         <div className="text-center mb-6">
           {isRecording && (
             <div className="flex items-center justify-center gap-3 mb-4">
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-                className="w-3 h-3 rounded-full bg-red-500"
-              />
+              <div className="w-3 h-3 rounded-full bg-red-500" />
               <span className="text-red-500 font-semibold">Recording</span>
             </div>
           )}
@@ -674,12 +662,7 @@ const VoiceReflections = () => {
                 </button>
                 <div className="flex-1 max-w-md">
                   <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-amber-400 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration }}
-                    />
+                    <div className="h-full w-full bg-amber-400 rounded-full" />
                   </div>
                 </div>
                 <span className="text-stone-500 font-mono">
