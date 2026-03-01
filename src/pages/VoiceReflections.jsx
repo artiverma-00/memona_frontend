@@ -248,12 +248,7 @@ const useAudioVisualizer = (audioBlob, isRecording) => {
         stopVisualization();
       };
     }
-  }, [
-    audioBlob,
-    isRecording,
-    stopVisualization,
-    startIdleVisualization,
-  ]);
+  }, [audioBlob, isRecording, stopVisualization, startIdleVisualization]);
 
   return {
     canvasRef,
