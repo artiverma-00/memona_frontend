@@ -4,6 +4,7 @@ import {
   FiX,
   FiImage,
   FiMic,
+  FiPlay,
   FiMapPin,
   FiCalendar,
   FiTag,
@@ -342,11 +343,23 @@ const MemoryForm = ({
                         </span>
                         <audio src={item.url} controls className="w-full h-7" />
                       </div>
+                    ) : item.type === "video" ? (
+                      <div className="relative w-full h-full">
+                        <video
+                          src={item.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                        />
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-none">
+                          <div className="w-9 h-9 rounded-full bg-white/80 text-stone-900 flex items-center justify-center">
+                            <FiPlay className="w-4 h-4 ml-0.5" />
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                      <video
-                        src={item.url}
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="w-full h-full bg-gray-100" />
                     )}
                     <button
                       type="button"

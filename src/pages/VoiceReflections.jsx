@@ -270,6 +270,10 @@ const VoiceReflections = () => {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [playingId, setPlayingId] = useState(null);
   const [playingRemainingSeconds, setPlayingRemainingSeconds] = useState(null);
+  const [playingCurrentSeconds, setPlayingCurrentSeconds] = useState(0);
+  const [playingDurationSeconds, setPlayingDurationSeconds] = useState(0);
+  const [previewCurrentSeconds, setPreviewCurrentSeconds] = useState(0);
+  const [previewDurationSeconds, setPreviewDurationSeconds] = useState(0);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -447,19 +451,35 @@ const VoiceReflections = () => {
     }
   };
 
-  const playReflection = (reflection) => {
+  const getProgressPercent = (current, total) => {
+    if (!Number.isFinite(total) || total <= 0) {
+      return 0;
+    }
+
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    const ratio = Math.max(0, Math.min(1, safeCurrent / total));
+    return ratio * 100;
+  };
+
+  const playReflection = (reflection, startTime = 0) => {
     if (!audioRef.current || !reflection?.audioUrl) {
       return;
     }
 
     audioRef.current.src = reflection.audioUrl;
-    audioRef.current.currentTime = 0;
+    audioRef.current.currentTime = Math.max(0, Number(startTime) || 0);
     audioRef.current.play();
     setPlayingId(reflection.id);
+    setPlayingCurrentSeconds(Math.max(0, Number(startTime) || 0));
 
     if (reflection.duration) {
-      setPlayingRemainingSeconds(Math.max(0, Math.round(reflection.duration)));
+      const total = Math.max(0, Number(reflection.duration) || 0);
+      setPlayingDurationSeconds(total);
+      setPlayingRemainingSeconds(
+        Math.max(0, Math.ceil(total - (Number(startTime) || 0))),
+      );
     } else {
+      setPlayingDurationSeconds(0);
       setPlayingRemainingSeconds(null);
     }
   };
@@ -469,8 +489,52 @@ const VoiceReflections = () => {
       audioRef.current?.pause();
       setPlayingId(null);
       setPlayingRemainingSeconds(null);
+      setPlayingCurrentSeconds(0);
+      setPlayingDurationSeconds(0);
     } else {
       playReflection(reflection);
+    }
+  };
+
+  const handleCardSeek = (event, reflection) => {
+    const progressEl = event.currentTarget;
+    const rect = progressEl.getBoundingClientRect();
+    if (rect.width <= 0) {
+      return;
+    }
+
+    const ratio = Math.max(
+      0,
+      Math.min(1, (event.clientX - rect.left) / rect.width),
+    );
+
+    const isActive = playingId === reflection.id;
+    const knownDuration = isActive
+      ? Number.isFinite(playingDurationSeconds) && playingDurationSeconds > 0
+        ? playingDurationSeconds
+        : Number(reflection.duration || 0)
+      : Number(reflection.duration || 0);
+
+    if (!Number.isFinite(knownDuration) || knownDuration <= 0) {
+      if (!isActive) {
+        playReflection(reflection);
+      }
+      return;
+    }
+
+    const targetTime = knownDuration * ratio;
+
+    if (!isActive) {
+      playReflection(reflection, targetTime);
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = targetTime;
+      setPlayingCurrentSeconds(targetTime);
+      setPlayingRemainingSeconds(
+        Math.max(0, Math.ceil(knownDuration - targetTime)),
+      );
     }
   };
 
@@ -510,12 +574,64 @@ const VoiceReflections = () => {
     }
 
     const remaining = Math.max(0, Math.ceil(durationSeconds - currentSeconds));
+    setPlayingCurrentSeconds(currentSeconds);
+    setPlayingDurationSeconds(durationSeconds);
     setPlayingRemainingSeconds(remaining);
   };
 
   const handleCardPlaybackEnded = () => {
     setPlayingId(null);
     setPlayingRemainingSeconds(null);
+    setPlayingCurrentSeconds(0);
+    setPlayingDurationSeconds(0);
+  };
+
+  const updatePreviewProgress = () => {
+    const player = previewAudioRef.current;
+    if (!player) return;
+
+    const current = Number(player.currentTime);
+    const durationFromAudio = Number(player.duration);
+    const durationFallback = Number(duration || 0);
+    const resolvedDuration =
+      Number.isFinite(durationFromAudio) && durationFromAudio > 0
+        ? durationFromAudio
+        : durationFallback;
+
+    if (Number.isFinite(current)) {
+      setPreviewCurrentSeconds(current);
+    }
+
+    if (Number.isFinite(resolvedDuration) && resolvedDuration > 0) {
+      setPreviewDurationSeconds(resolvedDuration);
+    }
+  };
+
+  const handlePreviewSeek = (event) => {
+    const player = previewAudioRef.current;
+    if (!player) return;
+
+    const progressEl = event.currentTarget;
+    const rect = progressEl.getBoundingClientRect();
+    if (rect.width <= 0) return;
+
+    const ratio = Math.max(
+      0,
+      Math.min(1, (event.clientX - rect.left) / rect.width),
+    );
+
+    const resolvedDuration =
+      Number.isFinite(player.duration) && player.duration > 0
+        ? player.duration
+        : Number(previewDurationSeconds || duration || 0);
+
+    if (!Number.isFinite(resolvedDuration) || resolvedDuration <= 0) {
+      return;
+    }
+
+    const targetTime = resolvedDuration * ratio;
+    player.currentTime = targetTime;
+    setPreviewCurrentSeconds(targetTime);
   };
 
   const togglePreviewPlayback = async () => {
@@ -638,7 +754,12 @@ const VoiceReflections = () => {
               <audio
                 ref={previewAudioRef}
                 src={audioUrl}
-                onEnded={() => setIsPreviewPlaying(false)}
+                onLoadedMetadata={updatePreviewProgress}
+                onTimeUpdate={updatePreviewProgress}
+                onEnded={() => {
+                  setIsPreviewPlaying(false);
+                  setPreviewCurrentSeconds(0);
+                }}
                 onPause={() => setIsPreviewPlaying(false)}
                 onPlay={() => setIsPreviewPlaying(true)}
                 className="hidden"
@@ -656,12 +777,31 @@ const VoiceReflections = () => {
                   )}
                 </button>
                 <div className="flex-1 max-w-md">
-                  <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div className="h-full w-full bg-amber-400 rounded-full" />
+                  <div
+                    className="h-2 bg-stone-100 rounded-full overflow-hidden cursor-pointer"
+                    onClick={handlePreviewSeek}
+                    role="slider"
+                    aria-valuemin={0}
+                    aria-valuemax={Math.max(
+                      0,
+                      Math.floor(previewDurationSeconds || duration || 0),
+                    )}
+                    aria-valuenow={Math.max(
+                      0,
+                      Math.floor(previewCurrentSeconds),
+                    )}
+                    aria-label="Preview progress"
+                  >
+                    <div
+                      className="h-full bg-amber-400 rounded-full"
+                      style={{
+                        width: `${getProgressPercent(previewCurrentSeconds, previewDurationSeconds || duration || 0)}%`,
+                      }}
+                    />
                   </div>
                 </div>
                 <span className="text-stone-500 font-mono">
-                  {formatDuration(duration)}
+                  {`${formatDuration(Math.floor(previewCurrentSeconds))} / ${formatDuration(Math.floor(previewDurationSeconds || duration || 0))}`}
                 </span>
               </div>
 
@@ -740,6 +880,41 @@ const VoiceReflections = () => {
                       {reflection.title || "Voice Reflection"}
                     </p>
                   </div>
+                </div>
+
+                <div
+                  className="h-2 bg-stone-100 rounded-full overflow-hidden mb-4 cursor-pointer"
+                  onClick={(event) => handleCardSeek(event, reflection)}
+                  role="slider"
+                  aria-valuemin={0}
+                  aria-valuemax={Math.max(
+                    0,
+                    Math.floor(
+                      (playingId === reflection.id
+                        ? playingDurationSeconds
+                        : Number(reflection.duration || 0)) || 0,
+                    ),
+                  )}
+                  aria-valuenow={Math.max(
+                    0,
+                    Math.floor(
+                      playingId === reflection.id ? playingCurrentSeconds : 0,
+                    ),
+                  )}
+                  aria-label={`Playback progress for ${reflection.title || "voice reflection"}`}
+                >
+                  <div
+                    className="h-full bg-amber-400 rounded-full"
+                    style={{
+                      width: `${getProgressPercent(
+                        playingId === reflection.id ? playingCurrentSeconds : 0,
+                        playingId === reflection.id
+                          ? playingDurationSeconds ||
+                              Number(reflection.duration || 0)
+                          : Number(reflection.duration || 0),
+                      )}%`,
+                    }}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">

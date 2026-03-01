@@ -111,10 +111,10 @@ const AlbumForm = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Cover Image */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-text-primary mb-2">
             Cover Image
           </label>
-          <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-dashed border-(--color-surface-border)">
             {formData.coverImage ? (
               <img
                 src={formData.coverImage}
@@ -122,7 +122,7 @@ const AlbumForm = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+              <div className="w-full h-full flex flex-col items-center justify-center text-text-secondary">
                 <FiImage className="w-10 h-10 mb-2" />
                 <span className="text-sm">Upload cover image</span>
               </div>
@@ -141,7 +141,7 @@ const AlbumForm = ({
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-text-primary mb-1">
             Album Name *
           </label>
           <input
@@ -151,10 +151,10 @@ const AlbumForm = ({
             onChange={handleChange}
             className={`
               w-full px-4 py-2.5 rounded-xl border-2 
-              bg-gray-50 dark:bg-gray-800 
-              text-gray-900 dark:text-white
-              focus:ring-2 focus:ring-indigo-500/20 
-              focus:border-indigo-500 outline-none transition-all
+              bg-page-bg
+              text-text-primary
+              focus:ring-2 focus:ring-amber-100
+              focus:border-(--color-accent-gold) outline-none transition-all
               ${errors.name ? "border-red-500" : "border-transparent"}
             `}
             placeholder="Enter album name"
@@ -166,7 +166,7 @@ const AlbumForm = ({
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-text-primary mb-1">
             Description
           </label>
           <textarea
@@ -174,24 +174,24 @@ const AlbumForm = ({
             value={formData.description}
             onChange={handleChange}
             rows={3}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all resize-none"
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-transparent bg-page-bg text-text-primary focus:ring-2 focus:ring-amber-100 focus:border-(--color-accent-gold) outline-none transition-all resize-none"
             placeholder="Describe this album..."
           />
         </div>
 
         {/* Tags */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-text-primary mb-1">
             Tags
           </label>
           <div className="relative">
-            <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
             <input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleAddTag}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-transparent bg-page-bg text-text-primary focus:ring-2 focus:ring-amber-100 focus:border-(--color-accent-gold) outline-none transition-all"
               placeholder="Press Enter to add tags"
             />
           </div>
@@ -200,13 +200,13 @@ const AlbumForm = ({
               {formData.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-accent-gold-dark rounded-full text-sm"
                 >
                   #{tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
-                    className="hover:text-indigo-800 dark:hover:text-indigo-200"
+                    className="hover:text-(--color-accent-gold)"
                   >
                     <FiX className="w-3 h-3" />
                   </button>
@@ -227,8 +227,8 @@ const AlbumForm = ({
               flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all
               ${
                 formData.isPrivate
-                  ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                  ? "bg-amber-100 text-accent-gold-dark"
+                  : "bg-page-bg text-text-secondary"
               }
             `}
           >
@@ -244,8 +244,8 @@ const AlbumForm = ({
               flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all
               ${
                 !formData.isPrivate
-                  ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                  ? "bg-amber-100 text-accent-gold-dark"
+                  : "bg-page-bg text-text-secondary"
               }
             `}
           >
@@ -255,11 +255,11 @@ const AlbumForm = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-3 pt-4 border-t border-(--color-surface-border)">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+            className="px-6 py-2.5 text-text-secondary hover:bg-page-bg hover:text-text-primary rounded-xl transition-colors"
           >
             Cancel
           </button>
@@ -268,7 +268,7 @@ const AlbumForm = ({
             disabled={loading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-(--color-accent-gold) hover:bg-accent-gold-dark text-stone-900 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Saving..." : album ? "Update Album" : "Create Album"}
           </motion.button>

@@ -99,29 +99,24 @@ const Timeline = () => {
     }
   }, [location, navigate]);
 
-  // Generate timeline data
-  const timelineData = generateTimeline(memoriesWithAlbum);
-
   // Filter memories by search
   const normalizeSearchText = (value) => String(value || "").toLowerCase();
-  const filteredMemories = searchQuery
+  const normalizedQuery = normalizeSearchText(searchQuery).trim();
+  const filteredMemories = normalizedQuery
     ? memoriesWithAlbum.filter(
         (m) =>
-          normalizeSearchText(m.title).includes(
-            normalizeSearchText(searchQuery),
-          ) ||
-          normalizeSearchText(m.description).includes(
-            normalizeSearchText(searchQuery),
-          ) ||
+          normalizeSearchText(m.title).includes(normalizedQuery) ||
+          normalizeSearchText(m.description).includes(normalizedQuery) ||
           (Array.isArray(m.tags)
             ? m.tags.some((t) =>
-                normalizeSearchText(t).includes(
-                  normalizeSearchText(searchQuery),
-                ),
+                normalizeSearchText(t).includes(normalizedQuery),
               )
             : false),
       )
     : memoriesWithAlbum;
+
+  // Generate timeline data from currently filtered memories
+  const timelineData = generateTimeline(filteredMemories);
 
   const handleEdit = (memory) => {
     setEditingMemory(memory);

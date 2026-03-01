@@ -46,7 +46,26 @@ const MemoryCard = ({
     memoryItem.media?.find((m) => m.type === "video") ||
     memoryItem.media?.[0] || { type: "image" };
 
+  const getVideoThumbnailFromUrl = (url) => {
+    const value = String(url || "");
+    if (!value) return null;
+
+    if (
+      value.includes("res.cloudinary.com") &&
+      value.includes("/video/upload/")
+    ) {
+      return value.replace("/video/upload/", "/video/upload/so_1,f_jpg/");
+    }
+
+    return null;
+  };
+
   const mainMedia = getMainMediaFromMemory(memory);
+  const videoThumbnail =
+    memory.media?.find((m) => m.type === "video")?.thumbnail ||
+    getVideoThumbnailFromUrl(
+      memory.media?.find((m) => m.type === "video")?.url,
+    );
 
   const mediaType = mainMedia.type || "image";
 
@@ -399,13 +418,21 @@ const MemoryCard = ({
       className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-stone-100 hover:border-amber-200 transition-all cursor-pointer"
       onClick={() => navigate(contentLink)}
     >
-      <div className="w-12 h-12 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0">
-        {mediaType === "image" && mainMedia.url && (
-          <img
-            src={mainMedia.url}
-            className="w-full h-full object-cover"
-            alt=""
-          />
+      <div className="relative w-12 h-12 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0">
+        {(mediaType === "image" || mediaType === "video") &&
+          (mediaType === "image" ? mainMedia.url : videoThumbnail) && (
+            <img
+              src={mediaType === "image" ? mainMedia.url : videoThumbnail}
+              className="w-full h-full object-cover"
+              alt=""
+            />
+          )}
+        {mediaType === "video" && videoThumbnail && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center">
+              <FiPlay className="w-3 h-3 text-white ml-0.5" />
+            </div>
+          </div>
         )}
       </div>
       <div className="flex-1 min-w-0">

@@ -27,6 +27,20 @@ const formatIST = (dateString) => {
 // Aspect ratio for "equal size" look
 const CARD_ASPECT = "aspect-[4/5]";
 
+const getVideoThumbnailFromUrl = (url) => {
+  const value = String(url || "");
+  if (!value) return null;
+
+  if (
+    value.includes("res.cloudinary.com") &&
+    value.includes("/video/upload/")
+  ) {
+    return value.replace("/video/upload/", "/video/upload/so_1,f_jpg/");
+  }
+
+  return null;
+};
+
 export const PhotoStoryCard = ({
   memory,
   onToggleFavorite,
@@ -89,8 +103,10 @@ export const PhotoStoryCard = ({
 };
 
 export const VideoStoryCard = ({ memory, aspectRatio = CARD_ASPECT }) => {
+  const videoMedia = memory.media?.find((m) => m.type === "video");
   const thumbnail =
-    memory.media?.find((m) => m.type === "video")?.thumbnail ||
+    videoMedia?.thumbnail ||
+    getVideoThumbnailFromUrl(videoMedia?.url) ||
     memory.media?.find((m) => m.type === "image")?.url ||
     "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80";
 
